@@ -8,4 +8,6 @@ Low-level libraries and components from FastTrak application.  Existing code tha
 5. Does not contain secrets of any kind (passwords, usernames, API-keys etc).
 6. Has passed review from at least to members of our team, where items 1-5 are addressed.
 
-The documentation
+The documentation should preferably be done with a tool that supports references, 
+like [Documentation Insight](http://www.devjetsoftware.com/products/documentation-insight/ "Documentation Insight") 
+from [DevJet](http://www.devjetsoftware.com/ "DevJet software").
