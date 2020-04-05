@@ -1,5 +1,7 @@
 # emetra
-Low-level libraries and components from **FastTrak** application.  Existing code that has passed peer review will be moved here based on a set of critera, the code ...
+Low-level libraries and components from **FastTrak** application.  Existing code that has passed peer review will be moved here.  The decision to do so will be based on a set of critera.
+
+## The code ...
 
 1. Is used by **FastTrak** and/or related tools
 2. Has functionality that is general in nature, or can be useful to other teams.
