@@ -266,7 +266,7 @@ const
 resourcestring
 
   MSG_SUFFIX_CONTACT_SUPPORT = '\nTa et skjermbilde og send til fasttrak@dips.no.';
-  MSG_SUFFIX_CONTACT_SUPPORT_LOCAL = '\nNoter meldingen og kontakt systemansvarlig.';
+  MSG_SUFFIX_CONTACT_SUPPORT_LOCAL = '\nNoter meldingen og kontakt lokal systemansvarlig.';
 
 const
   EXC_INTERFACE_UNASSIGNED = 'The interface %s is not assigned.';
