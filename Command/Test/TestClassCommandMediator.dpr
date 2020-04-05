@@ -4,7 +4,7 @@
 {$APPTYPE CONSOLE}
 {$ENDIF}{$STRONGLINKTYPES ON}
 uses
-  Emetra.Logging.SmartInspect,
+  Emetra.Logging.PlainText,
   System.SysUtils,
   {$IFDEF TESTINSIGHT}
   TestInsight.DUnitX,
