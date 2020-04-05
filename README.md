@@ -1,5 +1,5 @@
 # emetra
-Low-level libraries and components from FastTrak application.  Existing code that has passed peer review will be moved here based on a set of critera, the code ...
+Low-level libraries and components from **FastTrak** application.  Existing code that has passed peer review will be moved here based on a set of critera, the code ...
 
 1. Is used by **FastTrak** and/or related tools
 2. Has functionality that is general in or can be useful to other teams.
@@ -10,4 +10,4 @@ Low-level libraries and components from FastTrak application.  Existing code tha
 
 The documentation should preferably be done with a tool that supports references, 
 like [Documentation Insight](http://www.devjetsoftware.com/products/documentation-insight/ "Documentation Insight") 
-from [DevJet](http://www.devjetsoftware.com/ "DevJet software").
+from [DevJet Software](http://www.devjetsoftware.com/ "DevJet software").
