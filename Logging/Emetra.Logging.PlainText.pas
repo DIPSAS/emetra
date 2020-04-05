@@ -38,7 +38,7 @@ type
     fLogFolderPresent: boolean;
     fSaveToFileOnDestroy: boolean;
     fStopWatch: array [0 .. MAX_NESTING] of TStopWatch;
-    fFUserIniFile: TIniFile;
+    fUserIniFile: TIniFile;
     class var InstanceCounter: Integer;
     function GetFileNameLog: string;
     function GetStandardFileName: string;

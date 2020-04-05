@@ -7,15 +7,15 @@ uses
 
 const
   { Start and end of log }
-  mcFirstAndLastEntry: TColor      = $00DEC4B0;
-  mcFinalizeWithExceptions: TColor = $003C14DC;
-  mcFinalizeNoExceptions: TColor   = $0000FF7F;
+  mcFirstAndLastEntry: TColor      = $00DEC4B0; // Apricot
+  mcFinalizeWithExceptions: TColor = $003C14DC; // Crimson - a clear red color
+  mcFinalizeNoExceptions: TColor   = $0000FF7F; // Chartreuse - a bright green color
 
   { Warning level colors }
-  mcWarningMessage: TColor  = $002BF0FF;
-  mcInfoMessage: TColor     = $0029F667;
-  mcErrorMessage: TColor    = $005D2BFF;
-  mcCriticalMessage: TColor = $000000FF;
+  mcWarningMessage: TColor  = $002BF0FF; // Broom - a yellow color
+  mcInfoMessage: TColor     = $0029F667; // Bright green
+  mcErrorMessage: TColor    = $005D2BFF; // Radical red
+  mcCriticalMessage: TColor = $000000FF; // Solid red
 
   { Call stack colors }
   mcCallStack: TColor = TColorRec.Aliceblue;
