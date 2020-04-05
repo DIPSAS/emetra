@@ -29,16 +29,16 @@ type
 
   TPlainTextLog = class( TLogAdapter, ILog, ILogItemList, ILogMultitarget )
   strict private
-    FCallCounter: Integer;
-    FCriticalSection: TCriticalSection;
-    FIndentLevel: Integer;
-    FItems: TLogItemList;
-    FLogCallStack: boolean;
-    FLogFileNumber: Integer;
-    FLogFolderPresent: boolean;
-    FSaveToFileOnDestroy: boolean;
-    FStopWatch: array [0 .. MAX_NESTING] of TStopWatch;
-    FUserIniFile: TIniFile;
+    fCallCounter: Integer;
+    fCriticalSection: TCriticalSection;
+    fIndentLevel: Integer;
+    fItems: TLogItemList;
+    fLogCallStack: boolean;
+    fLogFileNumber: Integer;
+    fLogFolderPresent: boolean;
+    fSaveToFileOnDestroy: boolean;
+    fStopWatch: array [0 .. MAX_NESTING] of TStopWatch;
+    fFUserIniFile: TIniFile;
     class var InstanceCounter: Integer;
     function GetFileNameLog: string;
     function GetStandardFileName: string;
@@ -102,8 +102,8 @@ type
     procedure SetUserFile( AIniFile: TIniFile );
     { Properties }
     property Count: Integer read Get_Count;
-    property LogFolderPresent: boolean read FLogFolderPresent;
-    property SaveToFileOnDestroy: boolean read FSaveToFileOnDestroy write FSaveToFileOnDestroy;
+    property LogFolderPresent: boolean read fLogFolderPresent;
+    property SaveToFileOnDestroy: boolean read fSaveToFileOnDestroy write fSaveToFileOnDestroy;
     property Text: string read Get_Text;
   end;
 
@@ -128,7 +128,6 @@ uses
   Emetra.Hash.CRC32;
 
 {$REGION 'Initialization'}
-
 
 function GetLogFileName( const AExtraFileId: string = '' ): string;
 const
@@ -157,8 +156,8 @@ begin
   inherited;
   // Assert( InstanceCounter = 0 );
   inc( InstanceCounter );
-  FCriticalSection := TCriticalSection.Create;
-  FItems := TLogItemList.Create;
+  fCriticalSection := TCriticalSection.Create;
+  fItems := TLogItemList.Create;
   Enabled := true;
 end;
 
@@ -168,7 +167,7 @@ begin
   { Default settings }
   FUserIniFile := nil; { Should already be nil }
   { Add first log entry before settings are read }
-  FItems.Add( TLogItem.Create( 0, Format( 'Initializing Emetra.Logging.PlainText.pas: %s', [ParamStr( 0 )] ), ltInfo, mcFirstAndLastEntry ) );
+  fItems.Add( TLogItem.Create( 0, Format( 'Initializing Emetra.Logging.PlainText.pas: %s', [ParamStr( 0 )] ), ltInfo, mcFirstAndLastEntry ) );
   { Read settings and connect to log server }
   ReadLogSettings;
   SetDefaultFileName;
@@ -176,8 +175,8 @@ end;
 
 procedure TPlainTextLog.BeforeDestruction;
 begin
-  FItems.Add( TLogItem.Create( FIndentLevel, 'Finalizing Emetra.Logging.PlainText.pas', ltInfo, mcFirstAndLastEntry ) );
-  if FSaveToFileOnDestroy then
+  fItems.Add( TLogItem.Create( fIndentLevel, 'Finalizing Emetra.Logging.PlainText.pas', ltInfo, mcFirstAndLastEntry ) );
+  if fSaveToFileOnDestroy then
     try
       SaveToFile( GetStandardFileName );
     except
@@ -190,19 +189,19 @@ end;
 destructor TPlainTextLog.Destroy;
 begin
   dec( InstanceCounter );
-  FCriticalSection.Free;
-  FItems.Free;
+  fCriticalSection.Free;
+  fItems.Free;
   inherited;
 end;
 
 procedure TPlainTextLog.Clear;
 begin
-  FItems.Clear;
+  fItems.Clear;
 end;
 
 procedure TPlainTextLog.ClearAllTargets;
 begin
-  FItems.ClearAllTargets;
+  fItems.ClearAllTargets;
 end;
 
 procedure TPlainTextLog.ReadLogSettings;
@@ -215,9 +214,9 @@ var
   globalMaxFileCount: Integer;
   userMaxFileCount: Integer;
 begin
-  FLogFileNumber := 0;
-  FLogFolderPresent := DirectoryExists( ExtractFilePath( GetFileNameSettings ) );
-  if not FLogFolderPresent then
+  fLogFileNumber := 0;
+  fLogFolderPresent := DirectoryExists( ExtractFilePath( GetFileNameSettings ) );
+  if not fLogFolderPresent then
     SilentWarning( '%s.%s: Log folder missing, expected location: "%s"', [ClassName, PROC_NAME, ExtractFilePath( GetFileNameSettings )] )
   else
     try
@@ -225,13 +224,13 @@ begin
       try
         userIniSection := GetUserName;
         globalMaxFileCount := logSettings.ReadInteger( SECTION_GLOBAL, KEY_MAXFILE, DEFAULT_MAXFILE );
-        FLogFileNumber := logSettings.ReadInteger( userIniSection, KEY_FILENO, 0 );
+        fLogFileNumber := logSettings.ReadInteger( userIniSection, KEY_FILENO, 0 );
         userMaxFileCount := logSettings.ReadInteger( userIniSection, KEY_MAXFILE, globalMaxFileCount );
-        if FLogFileNumber >= userMaxFileCount then
-          FLogFileNumber := 1
+        if fLogFileNumber >= userMaxFileCount then
+          fLogFileNumber := 1
         else
-          inc( FLogFileNumber );
-        logSettings.WriteInteger( userIniSection, KEY_FILENO, FLogFileNumber );
+          inc( fLogFileNumber );
+        logSettings.WriteInteger( userIniSection, KEY_FILENO, fLogFileNumber );
       finally
         logSettings.Free;
       end;
@@ -246,7 +245,7 @@ end;
 
 function TPlainTextLog.Get_Count;
 begin
-  Result := FItems.Count;
+  Result := fItems.Count;
 end;
 
 function TPlainTextLog.Get_Text: string;
@@ -254,14 +253,14 @@ var
   n: Integer;
   textLines: TStringList;
 begin
-  FCriticalSection.Enter;
+  fCriticalSection.Enter;
   try
     textLines := TStringList.Create;
     try
       n := 0;
-      while n < FItems.Count do
+      while n < fItems.Count do
       begin
-        textLines.Add( DupeString( '  ', FItems[n].Indent ) + FItems[n].Text );
+        textLines.Add( DupeString( '  ', fItems[n].Indent ) + fItems[n].Text );
         inc( n );
       end;
       Result := textLines.Text;
@@ -269,7 +268,7 @@ begin
       textLines.Free;
     end;
   finally
-    FCriticalSection.Leave;
+    fCriticalSection.Leave;
   end;
 end;
 
@@ -278,17 +277,17 @@ end;
 
 procedure TPlainTextLog.EnterMethod( AInstance: TObject; const AMethodName: string );
 begin
-  FCriticalSection.Enter;
+  fCriticalSection.Enter;
   try
-    if MainThread and FLogCallStack then
+    if MainThread and fLogCallStack then
     begin
-      FItems.Add( TLogItem.Create( FIndentLevel, Format( '%s.%s: Enter', [AInstance.ClassName, AMethodName] ), ltInfo, mcCallStack, clCallStack ) );
-      inc( FIndentLevel );
-      if ( FIndentLevel <= MAX_NESTING ) and ( FIndentLevel >= 0 ) then
-        FStopWatch[FIndentLevel] := TStopWatch.StartNew;
+      fItems.Add( TLogItem.Create( fIndentLevel, Format( '%s.%s: Enter', [AInstance.ClassName, AMethodName] ), ltInfo, mcCallStack, clCallStack ) );
+      inc( fIndentLevel );
+      if ( fIndentLevel <= MAX_NESTING ) and ( fIndentLevel >= 0 ) then
+        fStopWatch[fIndentLevel] := TStopWatch.StartNew;
     end;
   finally
-    FCriticalSection.Leave;
+    fCriticalSection.Leave;
   end;
 end;
 
@@ -296,19 +295,19 @@ procedure TPlainTextLog.LeaveMethod( AInstance: TObject; const AMethodName: stri
 var
   msElapsed: Int64;
 begin
-  FCriticalSection.Enter;
+  fCriticalSection.Enter;
   try
-    if MainThread and FLogCallStack then
+    if MainThread and fLogCallStack then
     begin
-      if ( FIndentLevel <= MAX_NESTING ) and ( FIndentLevel >= 0 ) then
-        msElapsed := FStopWatch[FIndentLevel].ElapsedMilliseconds
+      if ( fIndentLevel <= MAX_NESTING ) and ( fIndentLevel >= 0 ) then
+        msElapsed := fStopWatch[fIndentLevel].ElapsedMilliseconds
       else
         msElapsed := 0;
-      dec( FIndentLevel );
-      FItems.Add( TLogItem.Create( FIndentLevel, Format( '%s.%s: Leave ( %d ms )', [AInstance.ClassName, AMethodName, msElapsed] ), ltInfo, mcCallStack, clCallStack ) );
+      dec( fIndentLevel );
+      fItems.Add( TLogItem.Create( fIndentLevel, Format( '%s.%s: Leave ( %d ms )', [AInstance.ClassName, AMethodName, msElapsed] ), ltInfo, mcCallStack, clCallStack ) );
     end;
   finally
-    FCriticalSection.Leave;
+    fCriticalSection.Leave;
   end;
 end;
 
@@ -317,44 +316,44 @@ end;
 
 procedure TPlainTextLog.LogSqlQuery( const ASQL: string );
 begin
-  FItems.Add( TLogItem.Create( FIndentLevel, ASQL, ltInfo, mcSqlQuery, clLogDefaultText ) );
+  fItems.Add( TLogItem.Create( fIndentLevel, ASQL, ltInfo, mcSqlQuery, clLogDefaultText ) );
 end;
 
 procedure TPlainTextLog.LogSqlCommand( const ASQL: string );
 begin
-  FItems.Add( TLogItem.Create( FIndentLevel, ASQL, ltInfo, mcSqlCommand, clLogDefaultText ) );
+  fItems.Add( TLogItem.Create( fIndentLevel, ASQL, ltInfo, mcSqlCommand, clLogDefaultText ) );
 end;
 {$ENDREGION}
 {$REGION 'Outcomes logging'}
 
 procedure TPlainTextLog.SilentSuccess( const AMessage: string );
 begin
-  FItems.Add( TLogItem.Create( FIndentLevel, AMessage, ltInfo, mcSilentSuccess ) );
+  fItems.Add( TLogItem.Create( fIndentLevel, AMessage, ltInfo, mcSilentSuccess ) );
 end;
 
 procedure TPlainTextLog.SilentSuccess( const AMessage: string; const Args: array of const );
 begin
-  FItems.Add( TLogItem.Create( FIndentLevel, Format( AMessage, Args ), ltInfo, mcSilentSuccess ) );
+  fItems.Add( TLogItem.Create( fIndentLevel, Format( AMessage, Args ), ltInfo, mcSilentSuccess ) );
 end;
 
 procedure TPlainTextLog.SilentError( const AMessage: string );
 begin
-  FItems.Add( TLogItem.Create( FIndentLevel, AMessage, ltInfo, mcSilentError ) );
+  fItems.Add( TLogItem.Create( fIndentLevel, AMessage, ltInfo, mcSilentError ) );
 end;
 
 procedure TPlainTextLog.SilentError( const AMessage: string; const Args: array of const );
 begin
-  FItems.Add( TLogItem.Create( FIndentLevel, Format( AMessage, Args ), ltInfo, mcSilentError ) );
+  fItems.Add( TLogItem.Create( fIndentLevel, Format( AMessage, Args ), ltInfo, mcSilentError ) );
 end;
 
 procedure TPlainTextLog.SilentWarning( const AMessage: string );
 begin
-  FItems.Add( TLogItem.Create( FIndentLevel, AMessage, ltInfo, mcSilentWarning ) );
+  fItems.Add( TLogItem.Create( fIndentLevel, AMessage, ltInfo, mcSilentWarning ) );
 end;
 
 procedure TPlainTextLog.SilentWarning( const AMessage: string; const Args: array of const );
 begin
-  FItems.Add( TLogItem.Create( FIndentLevel, Format( AMessage, Args ), ltInfo, mcSilentWarning ) );
+  fItems.Add( TLogItem.Create( fIndentLevel, Format( AMessage, Args ), ltInfo, mcSilentWarning ) );
 end;
 
 {$ENDREGION}
@@ -367,7 +366,7 @@ end;
 
 function TPlainTextLog.GetFileNameLog: string;
 begin
-  Result := GetLogFileName( Format( '%.3d', [FLogFileNumber] ) );
+  Result := GetLogFileName( Format( '%.3d', [fLogFileNumber] ) );
 end;
 
 function TPlainTextLog.GetStandardFileName: string;
@@ -382,10 +381,10 @@ var
 begin
   newTarget := TLogWriter.Create( GetFileNameLog );
   { Save existing items }
-  for item in FItems do
+  for item in fItems do
     newTarget.Send( item );
   { Add target to list }
-  FItems.AddTarget( newTarget );
+  fItems.AddTarget( newTarget );
 end;
 
 {$ENDREGION}
@@ -404,15 +403,15 @@ procedure TPlainTextLog.Event( AMessage: string; const ALogType: TLogLevel );
 var
   dialogText: string;
 begin
-  FCriticalSection.Enter;
+  fCriticalSection.Enter;
   try
-    inc( FCallCounter );
+    inc( fCallCounter );
     if ( ALogType >= Threshold ) then
     begin
       if Enabled then
-        FItems.Add( TLogItem.Create( FIndentLevel, StripNewlines( AMessage ), ALogType ) );
+        fItems.Add( TLogItem.Create( fIndentLevel, StripNewlines( AMessage ), ALogType ) );
       { Dialog box if needed }
-      if not ( ALogType >= ThresholdForDialog ) then
+      if not( ALogType >= ThresholdForDialog ) then
         SetDefaultResult
       else
       begin
@@ -433,7 +432,7 @@ begin
       end;
     end;
   finally
-    FCriticalSection.Leave;
+    fCriticalSection.Leave;
   end;
 end;
 
@@ -449,11 +448,11 @@ end;
 
 function TPlainTextLog.LogYesNo( const AMessage: string; const ALevel: TLogLevel = ltMessage; const ACancel: boolean = false ): boolean;
 begin
-  FCriticalSection.Enter;
+  fCriticalSection.Enter;
   try
     Result := inherited LogYesNo( AMessage, ALevel, ACancel );
   finally
-    FCriticalSection.Leave;
+    fCriticalSection.Leave;
   end;
 end;
 
@@ -472,23 +471,23 @@ procedure TPlainTextLog.AddStrings( const ATitle: string; AStrings: TStrings );
 var
   n: Integer;
 begin
-  FCriticalSection.Enter;
+  fCriticalSection.Enter;
   try
-    FItems.Add( TLogItem.Create( 0, ATitle, ltInfo ) );
+    fItems.Add( TLogItem.Create( 0, ATitle, ltInfo ) );
     n := 0;
     while n < AStrings.Count do
     begin
-      FItems.Add( TLogItem.Create( 0, AStrings[n], ltInfo ) );
+      fItems.Add( TLogItem.Create( 0, AStrings[n], ltInfo ) );
       inc( n );
     end;
   finally
-    FCriticalSection.Leave;
+    fCriticalSection.Leave;
   end;
 end;
 
 procedure TPlainTextLog.AddTarget( ATarget: ILogItemTarget );
 begin
-  FItems.AddTarget( ATarget );
+  fItems.AddTarget( ATarget );
   Event( '%s.AddTarget( %s )', [ClassName, TObject( ATarget ).ClassName] );
 end;
 
@@ -497,18 +496,18 @@ var
   currItem: TLogItem;
   plainTextLines: TStringList;
 begin
-  FCriticalSection.Enter;
+  fCriticalSection.Enter;
   try
     plainTextLines := TStringList.Create;
     try
-      for currItem in FItems do
+      for currItem in fItems do
         plainTextLines.Add( currItem.PlainText );
       plainTextLines.SaveToFile( AFileName );
     finally
       plainTextLines.Free;
     end;
   finally
-    FCriticalSection.Leave;
+    fCriticalSection.Leave;
   end;
 end;
 
@@ -519,26 +518,26 @@ end;
 
 function TPlainTextLog.TargetCount: Integer;
 begin
-  Result := FItems.TargetCount;
+  Result := fItems.TargetCount;
 end;
 
 function TPlainTextLog.TryGetItem( const AIndex: Integer; out AItem: IBasicLogItem ): boolean;
 begin
-  Result := ( AIndex > -1 ) and ( AIndex < FItems.Count );
+  Result := ( AIndex > -1 ) and ( AIndex < fItems.Count );
   if Result then
-    AItem := FItems[AIndex];
+    AItem := fItems[AIndex];
 end;
 
 const
   SECTION_MESSAGE = 'Message';
 
-procedure TPlainTextLog.ResetCounter(const AMessage: string);
+procedure TPlainTextLog.ResetCounter( const AMessage: string );
 var
   key: cardinal;
   strKey: string;
 begin
   key := HashMessage( AMessage );
-  if Assigned( FUserIniFile )  then
+  if Assigned( FUserIniFile ) then
   begin
     strKey := Format( 'MSG_%.8x', [key] );
     FUserIniFile.WriteInteger( SECTION_MESSAGE, strKey, 0 )
