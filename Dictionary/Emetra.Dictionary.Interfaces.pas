@@ -61,6 +61,11 @@ type
     function DefaultProperty: Variant;
   end;
 
+  IDataDictionary = interface
+    ['{6EA87537-D992-45D2-AE3A-34F6E3897F53}']
+    function TryGetData( const AVariableNumber: integer; out AData: Variant): boolean;
+  end;
+
   IPeriodDictionary = interface
     ['{9ABCF5FD-688A-4D7A-9BB5-2833BC722474}']
     function TryGetPeriod( const AContext, ACaption: string; out AStartDate, AStopDate: TDateTime ): boolean;

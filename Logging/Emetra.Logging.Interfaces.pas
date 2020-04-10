@@ -35,6 +35,7 @@ const
   PROC_FORM_CREATE        = 'FormCreate';
   PROC_AFTER_CONSTRUCTION = 'AfterConstruction';
   PROC_BEFORE_DESTRUCTION = 'BeforeDestruction';
+  LOG_STUB_INTx2 = '%s.%s(%d,%d): ';
 
 {$REGION 'Documentation'}
   /// <summary>
