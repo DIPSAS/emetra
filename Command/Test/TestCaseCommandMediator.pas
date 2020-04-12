@@ -40,6 +40,13 @@ type
     procedure InvokablePublishedMethod( const ARandomInteger: integer );
   end;
 
+implementation
+
+uses
+  Emetra.Command.Factory,
+  {Standard}
+  System.DateUtils, System.SysUtils, System.Variants, System.Math;
+
 const
   INVOKABLE_METHOD     = 'InvokablePublishedMethod';
   NON_INVOKABLE_METHOD = 'NonInvokablePublicMethod';
@@ -47,13 +54,6 @@ const
 const
   NON_EXISTING_OBJECT = 'SomeNonExistingObject';
   NON_EXISTING_METHOD = 'NonExistingMethod';
-
-implementation
-
-uses
-  Emetra.Command.Factory,
-  {Standard}
-  System.DateUtils, System.SysUtils, System.Variants, System.Math;
 
 resourcestring
   StrRolandGundersen = 'Roland Gundersen';

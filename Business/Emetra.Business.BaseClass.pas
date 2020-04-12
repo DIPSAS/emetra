@@ -11,15 +11,15 @@ uses
 
 type
   /// <summary>
-  /// Business objects are lightweight objects that can be used as base class
-  /// for more complex objects that contains business logic. Typically they
-  /// are not used for smaller data objects with limited scope. These may not
-  /// need a logger, and they don't need to implement interfaces. More
-  /// complex data objects like <b>TPatient</b> in en EHR application may
-  /// need both of these. Deriving from <b>TInterfacedPersistent</b> (a
-  /// standard RTL class) it is not garbage collected and must be freed when
-  /// it is no longer used. If it it is added to a <b>TBusinessObjectCatalog</b>
-  /// , the lifetime and destruction is handled by the catalog.
+  /// Business objects are lightweight objects that can be used as base classes
+  /// for more complex objects that contain business logic. Typically they
+  /// are not used for smaller data objects with limited scope. Data objects may not
+  /// need a logger, and they usually don't need to implement interfaces. More
+  /// complex data objects like <b>TPatient</b> in an EHR application may
+  /// need both of these. Because TCustomBusiness inherits from <b>TInterfacedPersistent</b> (a
+  /// standard RTL class) it is not reference counted and must be freed when
+  /// it is no longer used. If it it is added to a <b>TBusinessObjectCatalog</b>,
+  /// the lifetime and destruction is handled by the catalog.
   /// </summary>
   /// <remarks>
   /// All TCustomBusiness descendants need to have a logger injected upon
