@@ -5,3 +5,5 @@ __history/
 Win32
 *.vrc
 *.res
+*.exe
+_Status.txt
