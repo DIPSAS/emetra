@@ -16,6 +16,7 @@ type
   { Normal runtime exceptions }
   EDatabaseCommandFailed = class( EDatabaseError );
   EDatabaseQueryFailed = class( EDatabaseError );
+  EDatabasePermissionDenied = class( EDatabaseError );
 
   /// <summary>
   ///   This exception should be raised when the database facade object tries
