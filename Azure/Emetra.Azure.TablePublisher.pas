@@ -104,7 +104,10 @@ begin
 end;
 
 procedure TBlazorDashPublisher.PublishAllDatasets( const AMinTimestamp: TDateTime );
-var tableName: string; dataFile: TStringList; fileName: string;
+var
+  tableName: string;
+  dataFile: TStringList;
+  fileName: string;
 begin
   Connect;
   try
