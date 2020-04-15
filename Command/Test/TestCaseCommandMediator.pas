@@ -104,17 +104,17 @@ begin
 
     { Check that the name is of the expected type and also correct }
     Assert.IsTrue( ACommand.TryGetValue( PRM_NAME, varValue ), 'A person should also have a name.' );
-    Assert.AreEqual( varUString, VarType( varValue ), 'Expected to see unicode string.' );
+    Assert.AreEqual( TVarType( varUString ), VarType( varValue ), 'Expected to see unicode string.' );
     Assert.AreEqual( StrRolandGundersen, VarToStr( varValue ), 'The name should be ' + StrRolandGundersen );
 
     { Check GenderId, short integer or byte }
     Assert.IsTrue( ACommand.TryGetValue( PRM_GENDER_ID, varValue ), 'A person should also have a GenderId.' );
-    Assert.AreEqual( varByte, VarType( varValue ), 'Expected to see a byte.' );
+    Assert.AreEqual( TVarType( varByte ), VarType( varValue ), 'Expected to see a byte.' );
     Assert.AreEqual( byte( GENDER_ID ), byte( varValue ) );
 
     { Check PersonNumber, 16 bit cardinal (word) }
     Assert.IsTrue( ACommand.TryGetValue( PRM_PERSON_NUMBER, varValue ), 'A person should also have a PersonNumber.' );
-    Assert.AreEqual( varWord, VarType( varValue ), 'Expected to see a word.' );
+    Assert.AreEqual( TVarType( varWord ), VarType( varValue ), 'Expected to see a word.' );
     Assert.AreEqual( PERSON_NUMBER, word( varValue ) );
 
     { Check nationalId, 64 bit integer }
