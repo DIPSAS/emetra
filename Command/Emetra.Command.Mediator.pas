@@ -36,14 +36,13 @@ unit Emetra.Command.Mediator;
 interface
 
 uses
-  Emetra.Command.Factory,
-  Emetra.Command.Interfaces,
-  { General classes }
+  {Third party}
+  Spring.Collections,
+  {General classes}
   Emetra.Business.BaseClass,
   {General interfaces}
-  Emetra.Logging.Interfaces,
+  Emetra.Command.Interfaces,
   {Standard}
-  Spring.Collections,
   System.Classes, System.SysUtils;
 
 type
@@ -164,6 +163,9 @@ type
 implementation
 
 uses
+  {General interfaces}
+  Emetra.Logging.Interfaces,
+  {Standard units}
   System.Rtti, System.TypInfo;
 
 const

@@ -4,7 +4,6 @@ interface
 
 uses
   {General}
-  Emetra.Logging.LogItem.Interfaces,
   Emetra.Logging.Interfaces,
   {Standard}
   System.Classes, System.UITypes, Generics.Collections;

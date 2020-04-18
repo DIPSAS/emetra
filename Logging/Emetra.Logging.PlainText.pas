@@ -5,12 +5,9 @@
 interface
 
 uses
-  Emetra.Logging.Target.TextFile,
-  Emetra.Logging.PlainText.LogItem,
   Emetra.Logging.PlainText.ItemList,
   Emetra.Logging.Base,
   {General interfaces}
-  Emetra.Logging.Colors,
   Emetra.Logging.LogItem.Interfaces,
   Emetra.Logging.Target.Interfaces,
   Emetra.Logging.Interfaces,
@@ -121,11 +118,13 @@ uses
 {$IFDEF MSWINDOWS}
   WinApi.Windows,
 {$ENDIF}
-  System.IOUtils,
   Emetra.CrossPlatform.User,
-  Emetra.Logging.Target.Graylog,
+  Emetra.Logging.Target.TextFile,
+  Emetra.Logging.Colors,
+  Emetra.Logging.PlainText.LogItem,
   Emetra.Logging.Utilities,
-  Emetra.Hash.CRC32;
+  {Standard}
+  System.IOUtils;
 
 {$REGION 'Initialization'}
 

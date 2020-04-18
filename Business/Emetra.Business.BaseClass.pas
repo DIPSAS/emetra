@@ -5,7 +5,6 @@ interface
 uses
   {General interfaces}
   Emetra.Logging.Interfaces,
-  Emetra.Dictionary.Interfaces,
   {Standard}
   System.Classes, System.Generics.Collections;
 
