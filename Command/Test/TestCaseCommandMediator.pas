@@ -100,7 +100,7 @@ begin
     { Check that the DateOfBirth is of the expected type and has the expected value }
     Assert.IsTrue( ACommand.TryGetValue( PRM_DOB, varValue ), 'A person should definitely have a date of birth.' );
     Assert.AreEqual( integer( varDate ), integer( VarType( varValue ) ), 'Expected to see a date.' );
-    Assert.AreEqual( EncodeDate( YYYY, MM, DD ), TDate( varValue ) );
+    Assert.AreEqual( EncodeDate( YYYY, MM, DD ), VarToDateTime( varValue ) );
 
     { Check that the name is of the expected type and also correct }
     Assert.IsTrue( ACommand.TryGetValue( PRM_NAME, varValue ), 'A person should also have a name.' );

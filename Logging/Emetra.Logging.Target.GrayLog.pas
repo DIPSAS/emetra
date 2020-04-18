@@ -140,6 +140,7 @@ function TGrayLogDispatcher.URI: string;
 var
   udp: TIdUDPClient;
 begin
+  Result := EmptyStr;
   for udp in fGrayLogUdpClients do
     Result := Result + Format( ',%s:%d', [udp.Host, udp.Port] );
   Result := Copy( Result, 2, maxint );
