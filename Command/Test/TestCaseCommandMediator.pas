@@ -45,6 +45,9 @@ uses
   {Standard}
   System.DateUtils, System.SysUtils, System.Variants, System.Math;
 
+resourcestring
+  SRolandGundersen = 'Roland Gundersen';
+
 const
   INVOKABLE_METHOD     = 'InvokablePublishedMethod';
   NON_INVOKABLE_METHOD = 'NonInvokablePublicMethod';
@@ -53,13 +56,12 @@ const
   NON_EXISTING_OBJECT = 'SomeNonExistingObject';
   NON_EXISTING_METHOD = 'NonExistingMethod';
 
-resourcestring
-  StrRolandGundersen = 'Roland Gundersen';
-  PRM_NAME = 'FullName';
-  PRM_GENDER_ID = 'GenderId';
-  PRM_DOB = 'DateOfBirth';
+const
+  PRM_NAME          = 'FullName';
+  PRM_GENDER_ID     = 'GenderId';
+  PRM_DOB           = 'DateOfBirth';
   PRM_PERSON_NUMBER = 'PersonNumber';
-  PRM_NATIONAL_ID = 'NationalId';
+  PRM_NATIONAL_ID   = 'NationalId';
 
 const
   YYYY          = 1965;
@@ -71,13 +73,13 @@ const
 
 const
   CMD_ADD_PERSON = 'AddPerson';
-  CMDTARGET_TEST = 'Test';
+  CMD_TARGET_TEST = 'Test';
 
 procedure TTestCommandMediator.AfterConstruction;
 begin
   inherited;
   fCommandHandler := TCommandMediator.Create( GlobalLog );
-  fCommandHandler.RegisterReceiver( CMDTARGET_TEST, Self );
+  fCommandHandler.RegisterReceiver( CMD_TARGET_TEST, Self );
   fCommandHandler.RegisterReceiver( CMD_ADD_PERSON, Self );
   NonInvokablePublicMethod( -1 ); { Just to avoid compiler hint }
   fExecutions := 0;
@@ -105,7 +107,7 @@ begin
     { Check that the name is of the expected type and also correct }
     Assert.IsTrue( ACommand.TryGetValue( PRM_NAME, varValue ), 'A person should also have a name.' );
     Assert.AreEqual( TVarType( varUString ), VarType( varValue ), 'Expected to see unicode string.' );
-    Assert.AreEqual( StrRolandGundersen, VarToStr( varValue ), 'The name should be ' + StrRolandGundersen );
+    Assert.AreEqual( SRolandGundersen, VarToStr( varValue ), 'The name should be ' + SRolandGundersen );
 
     { Check GenderId, short integer or byte }
     Assert.IsTrue( ACommand.TryGetValue( PRM_GENDER_ID, varValue ), 'A person should also have a GenderId.' );
@@ -179,7 +181,7 @@ procedure TTestCommandMediator.AddPerson;
 begin
   fExecutions := 0;
   Assert.IsTrue( fCommandHandler.ExecuteCmd(
-    { } TCommandFactory.Create( CMD_ADD_PERSON, PRM_NAME, StrRolandGundersen, PRM_GENDER_ID, GENDER_ID, PRM_DOB, EncodeDate( YYYY, MM, DD ),
+    { } TCommandFactory.Create( CMD_ADD_PERSON, PRM_NAME, SRolandGundersen, PRM_GENDER_ID, GENDER_ID, PRM_DOB, EncodeDate( YYYY, MM, DD ),
     { } PRM_PERSON_NUMBER, PERSON_NUMBER, PRM_NATIONAL_ID, NATIONAL_ID ) ), 'Should AddPerson successfully' );
 end;
 
