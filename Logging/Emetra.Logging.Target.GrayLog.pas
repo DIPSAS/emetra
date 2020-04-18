@@ -135,7 +135,7 @@ var
 begin
   if fGrayLogUdpClients.Count > 0 then
   begin
-    anonymousMessage := fHandlebarsMatcher.Replace( ALogItem.Text, rsAnonymized );
+    anonymousMessage := fHandlebarsMatcher.Replace( ALogItem.LogText, rsAnonymized );
     jsonDatagram := TJSONObject.Create;
     try
       jsonDatagram.AddPair( 'version', '1.1' );

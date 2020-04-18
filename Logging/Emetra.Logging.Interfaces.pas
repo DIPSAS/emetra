@@ -272,6 +272,9 @@ resourcestring
 const
   EXC_INTERFACE_UNASSIGNED = 'The interface %s is not assigned.';
 
+const
+  LOG_LEVEL_NAMES: array [TLogLevel] of string = ( 'debug', 'info', 'message', 'warning', 'error', 'critical' );
+
 var
   GlobalLog: ILog = nil;
 
@@ -280,7 +283,7 @@ procedure GuardCheckInterfaceAssigned( const AName: string; const AInterface: II
 implementation
 
 uses
-  SysUtils;
+  System.SysUtils;
 
 procedure GuardCheckInterfaceAssigned( const AName: string; const AInterface: IInterface );
 begin

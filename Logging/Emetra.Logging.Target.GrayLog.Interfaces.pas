@@ -3,8 +3,7 @@
 interface
 
 uses
-  Emetra.Logging.Target.Interfaces,
-  Emetra.Logging.LogItem.Interfaces;
+  Emetra.Logging.Target.Interfaces;
 
 type
   IGrayLogDispatcher = interface( ILogItemTarget )

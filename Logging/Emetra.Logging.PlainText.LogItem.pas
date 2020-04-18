@@ -14,29 +14,31 @@ type
   strict private
     fBrushColor: TColor;
     fFontColor: TColor;
-    fTimestamp: TDateTime;
-    fLevel: TLogLevel;
-    fText: string;
     fIndent: Integer;
+    fLevel: TLogLevel;
+    fLogText: string;
+    fTimestamp: TDateTime;
   protected
-    function Get_Indent: Integer;
-    function Get_Text: string;
     function Get_BrushColor: TColor;
     function Get_FontColor: TColor;
+    function Get_Indent: Integer;
     function Get_LogLevel: TLogLevel;
+    function Get_LogText: string;
     function Get_Timestamp: TDateTime;
     function Get_UnixTimestamp: double;
   public
-    constructor Create( const AIndent: Integer; const AText: string; const ALevel: TLogLevel; const ABrushColor: TColor = mcNone; const AFontColor: TColor = mcNone ); reintroduce;
-    function PlainText: string;
+    { Initialization }
+    constructor Create( const AIndent: Integer; const ALogText: string; const ALevel: TLogLevel; const ABrushColor: TColor = mcNone; const AFontColor: TColor = mcNone ); reintroduce;
+    { Other methods }
     function LevelText: string;
+    function PlainText: string;
     { Properties }
-    property Text: string read fText write fText;
-    property Level: TLogLevel read Get_LogLevel;
-    property Timestamp: TDateTime read Get_Timestamp;
     property BrushColor: TColor read Get_BrushColor write fBrushColor;
     property FontColor: TColor read Get_FontColor write fFontColor;
     property Indent: Integer read Get_Indent;
+    property Level: TLogLevel read Get_LogLevel;
+    property Text: string read fLogText write fLogText;
+    property Timestamp: TDateTime read Get_Timestamp;
   end;
 
 implementation
@@ -44,18 +46,14 @@ implementation
 uses
   System.SysUtils, System.StrUtils;
 
-const
-
-  LOG_LEVEL_NAMES: array [TLogLevel] of string = ( 'debug', 'info', 'message', 'warning', 'error', 'critical' );
-
   { TLogItem }
 
-constructor TLogItem.Create( const AIndent: Integer; const AText: string; const ALevel: TLogLevel; const ABrushColor: TColor; const AFontColor: TColor );
+constructor TLogItem.Create( const AIndent: Integer; const ALogText: string; const ALevel: TLogLevel; const ABrushColor: TColor; const AFontColor: TColor );
 begin
   inherited Create;
   fIndent := AIndent;
   fTimestamp := Now;
-  fText := AText;
+  fLogText := ALogText;
   fLevel := ALevel;
   fBrushColor := ABrushColor;
   fFontColor := AFontColor;
@@ -87,11 +85,6 @@ begin
   Result := fFontColor;
 end;
 
-function TLogItem.Get_Text: string;
-begin
-  Result := fText;
-end;
-
 function TLogItem.Get_Indent: Integer;
 begin
   Result := fIndent;
@@ -100,6 +93,11 @@ end;
 function TLogItem.Get_LogLevel: TLogLevel;
 begin
   Result := fLevel;
+end;
+
+function TLogItem.Get_LogText: string;
+begin
+  Result := fLogText;
 end;
 
 function TLogItem.Get_Timestamp: TDateTime;
@@ -112,14 +110,14 @@ begin
   Result :=  DateTimeToUnix( fTimeStamp, false ) + MillisecondOf( fTimestamp )/1000;
 end;
 
-function TLogItem.PlainText: string;
-begin
-  Result := FormatDateTime( 'hh:mm:ss.zzz', fTimestamp ) + #9 + LOG_LEVEL_NAMES[fLevel] + #9 + DupeString( #9, fIndent ) + fText;
-end;
-
 function TLogItem.LevelText: string;
 begin
   Result := LOG_LEVEL_NAMES[fLevel];
+end;
+
+function TLogItem.PlainText: string;
+begin
+  Result := FormatDateTime( 'hh:mm:ss.zzz', fTimestamp ) + #9 + LOG_LEVEL_NAMES[fLevel] + #9 + DupeString( #9, fIndent ) + fLogText;
 end;
 
 end.

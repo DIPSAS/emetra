@@ -12,7 +12,7 @@ type
     { Property accessors }
     function Get_Indent: integer;
     function Get_LogLevel: TLogLevel;
-    function Get_Text: string;
+    function Get_LogText: string;
     function Get_Timestamp: TDateTime;
     function Get_UnixTimestamp: double;
     { Other members }
@@ -21,7 +21,7 @@ type
     { Properties }
     property Indent: integer read Get_Indent;
     property LogLevel: TLogLevel read Get_LogLevel;
-    property Text: string read Get_Text;
+    property LogText: string read Get_LogText;
     property Timestamp: TDateTime read Get_Timestamp;
     property UnixTimestamp: double read Get_UnixTimestamp;
   end;
