@@ -165,7 +165,7 @@ procedure TPlainTextLog.AfterConstruction;
 begin
   inherited;
   { Default settings }
-  FUserIniFile := nil; { Should already be nil }
+  fUserIniFile := nil; { Should already be nil }
   { Add first log entry before settings are read }
   fItems.Add( TLogItem.Create( 0, Format( 'Initializing Emetra.Logging.PlainText.pas: %s', [ParamStr( 0 )] ), ltInfo, mcFirstAndLastEntry ) );
   { Read settings and connect to log server }
@@ -513,7 +513,7 @@ end;
 
 procedure TPlainTextLog.SetUserFile( AIniFile: TIniFile );
 begin
-  FUserIniFile := AIniFile;
+  fUserIniFile := AIniFile;
 end;
 
 function TPlainTextLog.TargetCount: Integer;
@@ -537,10 +537,10 @@ var
   strKey: string;
 begin
   key := HashMessage( AMessage );
-  if Assigned( FUserIniFile ) then
+  if Assigned( fUserIniFile ) then
   begin
     strKey := Format( 'MSG_%.8x', [key] );
-    FUserIniFile.WriteInteger( SECTION_MESSAGE, strKey, 0 )
+    fUserIniFile.WriteInteger( SECTION_MESSAGE, strKey, 0 )
   end
   else
     inherited ResetCounter( AMessage );
@@ -550,10 +550,10 @@ function TPlainTextLog.ShowCounter( const AKey: cardinal ): cardinal;
 var
   strKey: string;
 begin
-  if Assigned( FUserIniFile ) then
+  if Assigned( fUserIniFile ) then
   begin
     strKey := Format( 'MSG_%.8x', [AKey] );
-    Result := FUserIniFile.ReadInteger( SECTION_MESSAGE, strKey, 0 )
+    Result := fUserIniFile.ReadInteger( SECTION_MESSAGE, strKey, 0 )
   end
   else
     Result := inherited ShowCounter( AKey );
@@ -565,10 +565,10 @@ var
   strKey: string;
 begin
   numberOfTimesShownBefore := ShowCounter( AKey );
-  if Assigned( FUserIniFile ) then
+  if Assigned( fUserIniFile ) then
   begin
     strKey := Format( 'MSG_%.8x', [AKey] );
-    FUserIniFile.WriteInteger( SECTION_MESSAGE, strKey, numberOfTimesShownBefore + 1 )
+    fUserIniFile.WriteInteger( SECTION_MESSAGE, strKey, numberOfTimesShownBefore + 1 )
   end
   else
     inherited IncrementShowCounter( AKey );
