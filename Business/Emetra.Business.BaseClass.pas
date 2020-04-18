@@ -34,7 +34,9 @@ type
     procedure LeaveMethod( const AProcName: string );
     procedure VerifyConstructorParameters; dynamic;
   public
+    { Initialization }
     constructor Create( const ALog: ILog ); reintroduce;
+    { Properties }
     property Log: ILog read fLog;
   end;
 
