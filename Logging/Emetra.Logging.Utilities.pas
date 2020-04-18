@@ -2,9 +2,12 @@
 
 interface
 
-function RemoveHandlebars( const s: string ): string;
-function PrepareForDialog( const s: string ): string;
 function AnonymizeLogMessage( const s: string ): string;
+function PrepareForDialog( const s: string ): string;
+function RemoveHandlebars( const s: string ): string;
+
+resourcestring
+  TXT_REPLACEMENT = '(Anonymisert)';
 
 implementation
 
@@ -12,8 +15,16 @@ uses
   System.SysUtils,
   System.RegularExpressions;
 
-resourcestring
-  StrAnonymized = '(Anonymisert)';
+const
+  TEST_MESSAGE             = 'Hello  {{Napoleon Æ. Bonaparte}}'#10#13'  test.';
+  TEST_ANONYMIZED_TEMPLATE = 'Hello %s test.'; { Extra whitespace is removed }
+  EXC_ANONYMIZE_FAILED     = 'Anonymization did not work properly.';
+
+function AnonymizeLogMessage( const s: string ): string;
+begin
+  Result := TRegEx.Replace( s, '{{(.*)}}', TXT_REPLACEMENT );
+  Result := TRegEx.Replace( Result, '\s+', ' ' );
+end;
 
 function RemoveHandlebars( const s: string ): string;
 begin
@@ -25,12 +36,17 @@ begin
   Result := StringReplace( RemoveHandlebars( s ), '\n', #10, [rfReplaceAll] );
 end;
 
-function AnonymizeLogMessage( const s: string ): string;
+procedure SelfTest;
 begin
-  Result := TRegEx.Replace( s, '{{(.*)}}', StrAnonymized );
-  Result := TRegEx.Replace( Result, '\s+', ' ' );
+  Assert( SameText( AnonymizeLogMessage( TEST_MESSAGE ), Format( TEST_ANONYMIZED_TEMPLATE, [TXT_REPLACEMENT] ) ), EXC_ANONYMIZE_FAILED );
+  Assert( SameText( PrepareForDialog( 'a\nb' ), 'a'#10'b' ) );
+  Assert( SameText( RemoveHandlebars( 'a{{b}}c' ), 'abc' ) );
+  Assert( SameText( RemoveHandlebars( '{{b}}c' ), 'bc' ) );
+  Assert( SameText( RemoveHandlebars( 'a{{b}}' ), 'ab' ) );
 end;
 
 begin
-  Assert( AnonymizeLogMessage( 'Hei {{navn}}'#10#13' test.' ) = 'Hei ' + StrAnonymized + ' test.', 'Anonymisering virket ikke.' );
+  { Do a simple self-test here to avoid leaking deidentified log strings }
+  SelfTest;
+
 end.

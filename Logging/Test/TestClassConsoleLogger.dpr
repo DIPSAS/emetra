@@ -19,7 +19,7 @@ uses
   TestFramework,
   GUITestRunner,
   TextTestRunner,
-  TestCaseLoggingConsole in 'TestCaseLoggingConsole.pas',
+  TestCaseConsoleLogger in 'TestCaseConsoleLogger.pas',
   Emetra.Logging.Console in '..\Emetra.Logging.Console.pas',
   Emetra.Logging.Interfaces in '..\Emetra.Logging.Interfaces.pas',
   Emetra.Logging.Utilities in '..\Emetra.Logging.Utilities.pas';

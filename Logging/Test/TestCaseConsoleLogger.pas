@@ -1,4 +1,4 @@
-﻿unit TestCaseLoggingConsole;
+﻿unit TestCaseConsoleLogger;
 {
 
   Delphi DUnit Test Case

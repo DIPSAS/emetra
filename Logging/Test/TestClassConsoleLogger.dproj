@@ -136,7 +136,7 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="TestCaseLoggingConsole.pas"/>
+        <DCCReference Include="TestCaseConsoleLogger.pas"/>
         <DCCReference Include="..\Emetra.Logging.Console.pas"/>
         <DCCReference Include="..\Emetra.Logging.Interfaces.pas"/>
         <DCCReference Include="..\Emetra.Logging.Utilities.pas"/>
