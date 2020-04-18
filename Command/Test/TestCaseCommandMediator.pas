@@ -7,7 +7,6 @@ interface
 uses
 
   System.Classes,
-  Emetra.Logging.Interfaces,
   Emetra.Command.Mediator,
   Emetra.Command.Interfaces,
   DUnitX.TestFramework;
@@ -41,6 +40,7 @@ type
 implementation
 
 uses
+  Emetra.Logging.Interfaces,
   Emetra.Command.Factory,
   {Standard}
   System.DateUtils, System.SysUtils, System.Variants, System.Math;

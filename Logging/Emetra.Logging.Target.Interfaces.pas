@@ -8,7 +8,7 @@ uses
 type
   ILogItemTarget = interface
     ['{05454F30-A14C-4A7D-B32E-B7BDBAEC7ADA}']
-    procedure Send( ALogItem: IBasicLogItem );
+    procedure Send( const ALogItem: IBasicLogItem );
     function URI: string;
   end;
 
@@ -16,7 +16,7 @@ type
     ['{2DBF8ACB-756F-418B-A11E-C6C150A211A2}']
     function TargetCount: integer;
     procedure ClearAllTargets;
-    procedure AddTarget( ATarget: ILogItemTarget );
+    procedure AddTarget( const ATarget: ILogItemTarget );
   end;
 
 implementation

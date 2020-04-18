@@ -89,7 +89,7 @@ type
     { Class members }
     class function GetFileNameSettings: string;
     { Targets }
-    procedure AddTarget( ATarget: ILogItemTarget );
+    procedure AddTarget( const ATarget: ILogItemTarget );
     procedure ClearAllTargets;
     function TargetCount: Integer;
     { Other members }
@@ -481,7 +481,7 @@ begin
   end;
 end;
 
-procedure TPlainTextLog.AddTarget( ATarget: ILogItemTarget );
+procedure TPlainTextLog.AddTarget( const ATarget: ILogItemTarget );
 begin
   fItems.AddTarget( ATarget );
   Event( '%s.AddTarget( %s )', [ClassName, TObject( ATarget ).ClassName] );

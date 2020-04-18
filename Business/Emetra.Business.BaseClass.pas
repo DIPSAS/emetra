@@ -29,12 +29,12 @@ type
   strict private
     fLog: ILog;
   protected
-    procedure CheckAssigned( AInterface: IInterface; const ANameOfInterface: string );
+    procedure CheckAssigned( const AInterface: IInterface; const ANameOfInterface: string );
     procedure EnterMethod( const AProcName: string );
     procedure LeaveMethod( const AProcName: string );
     procedure VerifyConstructorParameters; dynamic;
   public
-    constructor Create( ALog: ILog ); reintroduce;
+    constructor Create( const ALog: ILog ); reintroduce;
     property Log: ILog read fLog;
   end;
 
@@ -43,7 +43,7 @@ implementation
 uses
   System.SysUtils;
 
-constructor TCustomBusiness.Create( ALog: ILog );
+constructor TCustomBusiness.Create( const ALog: ILog );
 begin
   inherited Create;
   fLog := ALog;
@@ -64,7 +64,7 @@ begin
   CheckAssigned( fLog, 'Log' );
 end;
 
-procedure TCustomBusiness.CheckAssigned( AInterface: IInterface; const ANameOfInterface: string );
+procedure TCustomBusiness.CheckAssigned( const AInterface: IInterface; const ANameOfInterface: string );
 const
   PROC_NAME = 'CheckAssigned';
   ERR_MSG   = LOG_STUB_STRING + 'The interface is not assigned.';

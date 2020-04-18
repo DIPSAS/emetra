@@ -16,7 +16,7 @@ type
     procedure CreateLogFile( const AFileName: string );
   private
     procedure WriteToFile( const AItem: IBasicLogItem );
-    procedure Send( ALogItem: IBasicLogItem );
+    procedure Send( const ALogItem: IBasicLogItem );
     { Property accessors }
     function URI: string;
   public
@@ -66,7 +66,7 @@ begin
   end;
 end;
 
-procedure TLogWriter.Send( ALogItem: IBasicLogItem );
+procedure TLogWriter.Send( const ALogItem: IBasicLogItem );
 begin
   if Assigned( fFileStream ) and ( fWriteErrors < MAX_ERRORS ) then
     WriteToFile( ALogItem );

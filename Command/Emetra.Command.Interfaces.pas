@@ -79,7 +79,7 @@ type
 
   ISelfRegisterCommandReceiver = interface
     ['{E31B449F-D560-4E57-A6B5-1487681106BB}']
-    procedure RegisterCommands( ACommandMediator: ICommandMediator );
+    procedure RegisterCommands( const ACommandMediator: ICommandMediator );
   end;
 
 implementation

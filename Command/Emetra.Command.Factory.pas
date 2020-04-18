@@ -8,7 +8,6 @@ interface
 uses
   System.Classes,
   Generics.Collections,
-  Emetra.Logging.Interfaces,
   Emetra.Command.Interfaces;
 
 type

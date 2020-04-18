@@ -3,7 +3,6 @@
 interface
 
 uses
-  Emetra.Logging.LogItem.Interfaces,
   Emetra.Logging.Target.Interfaces,
   Emetra.Logging.PlainText.LogItem,
   { General }
@@ -22,7 +21,7 @@ type
     procedure Clear; reintroduce;
     { Target handling }
     function TargetCount: integer;
-    procedure AddTarget( ATarget: ILogItemTarget );
+    procedure AddTarget( const ATarget: ILogItemTarget );
     procedure ClearAllTargets;
   end;
 
@@ -64,7 +63,7 @@ begin
   end;
 end;
 
-procedure TLogItemList.AddTarget( ATarget: ILogItemTarget );
+procedure TLogItemList.AddTarget( const ATarget: ILogItemTarget );
 begin
   fLogItemTargetList.Add( ATarget );
 end;
