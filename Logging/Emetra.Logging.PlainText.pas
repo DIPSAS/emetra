@@ -416,19 +416,16 @@ begin
       else
       begin
         dialogText := PrepareForDialog( AMessage );
-        try
-          if TMsgDlgBtn.mbNo in ButtonSet then
-          begin
-            ShowCrossPlatformDialog( dialogText, ButtonSet, TMsgDlgBtn.mbYes, 0, ALogType );
-            if ModalResult = mrCancel then
-              raise EAbort.Create( 'CanceledByUser' );
-          end
-          else if TMsgDlgBtn.mbIgnore in ButtonSet then
-            ShowCrossPlatformDialog( dialogText, [TMsgDlgBtn.mbOk, TMsgDlgBtn.mbIgnore], TMsgDlgBtn.mbOk, 0, ALogType )
-          else
-            ShowCrossPlatformDialog( dialogText, [TMsgDlgBtn.mbOk], TMsgDlgBtn.mbOk, 0, ALogType );
-        finally
-        end;
+        if TMsgDlgBtn.mbNo in ButtonSet then
+        begin
+          ShowCrossPlatformDialog( dialogText, ButtonSet, TMsgDlgBtn.mbYes, 0, ALogType );
+          if ModalResult = mrCancel then
+            raise EAbort.Create( 'CanceledByUser' );
+        end
+        else if TMsgDlgBtn.mbIgnore in ButtonSet then
+          ShowCrossPlatformDialog( dialogText, [TMsgDlgBtn.mbOk, TMsgDlgBtn.mbIgnore], TMsgDlgBtn.mbOk, 0, ALogType )
+        else
+          ShowCrossPlatformDialog( dialogText, [TMsgDlgBtn.mbOk], TMsgDlgBtn.mbOk, 0, ALogType );
       end;
     end;
   finally
