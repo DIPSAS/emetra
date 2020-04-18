@@ -275,14 +275,14 @@ const
 var
   GlobalLog: ILog = nil;
 
-procedure NilCheck( const AName: string; AInterface: IInterface );
+procedure GuardCheckInterfaceAssigned( const AName: string; const AInterface: IInterface );
 
 implementation
 
 uses
   SysUtils;
 
-procedure NilCheck( const AName: string; AInterface: IInterface );
+procedure GuardCheckInterfaceAssigned( const AName: string; const AInterface: IInterface );
 begin
   if not Assigned( AInterface ) then
     raise EArgumentNilException.CreateFmt( EXC_INTERFACE_UNASSIGNED, [AName] );
