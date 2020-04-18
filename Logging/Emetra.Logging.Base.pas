@@ -15,14 +15,14 @@ type
 
   TLogAdapter = class( TInterfacedObject )
   strict private
-    FThresholdForDialog: TLogLevel;
-    FThreshold: TLogLevel;
-    FModalResult: Integer;
-    FLogCallStack: boolean;
-    FEnabled: boolean;
-    FButtonSet: TMsgDlgButtons;
-    FDefaultButton: TMsgDlgBtn;
-    FShowCounter: TDictionary<cardinal, cardinal>;
+    fThresholdForDialog: TLogLevel;
+    fThreshold: TLogLevel;
+    fModalResult: Integer;
+    fLogCallStack: boolean;
+    fEnabled: boolean;
+    fButtonSet: TMsgDlgButtons;
+    fDefaultButton: TMsgDlgBtn;
+    fShowCounter: TDictionary<cardinal, cardinal>;
   private
     function MapButtonToResult( const ABtn: TMsgDlgBtn ): TModalResult;
   protected
@@ -44,9 +44,9 @@ type
     { other members }
     function ShowCrossPlatformDialog( const ALogMessage: string; const AButtons: TMsgDlgButtons; const ADefaultBtn: TMsgDlgBtn; const AHelpCtx: Longint; const ALogLevel: TLogLevel ): Integer;
     { Properties }
-    property ButtonSet: TMsgDlgButtons read FButtonSet;
-    property DefaultButton: TMsgDlgBtn read FDefaultButton;
-    property ModalResult: Integer read FModalResult;
+    property ButtonSet: TMsgDlgButtons read fButtonSet;
+    property DefaultButton: TMsgDlgBtn read fDefaultButton;
+    property ModalResult: Integer read fModalResult;
   protected
     { Mapping log level to dialog type }
     function MapDlggType( const ALogLevel: TLogLevel ): TMsgDlgType;
@@ -75,7 +75,7 @@ type
     function LogYesNo( const s: string; const ALevel: TLogLevel = ltMessage; const ACancel: boolean = false ): boolean;
     procedure Event( const s: string; const AParams: array of const; const ALogLevel: TLogLevel = ltInfo ); overload;
     { Properties }
-    property Enabled: boolean read FEnabled write FEnabled;
+    property Enabled: boolean read fEnabled write fEnabled;
     property LogCallStack: boolean read Get_LogCallStack write Set_LogCallStack;
     property Threshold: TLogLevel read Get_Threshold write Set_Threshold;
     property ThresholdForDialog: TLogLevel read Get_ThresholdForDialog write Set_ThresholdForDialog;
@@ -105,15 +105,15 @@ uses
 constructor TLogAdapter.Create;
 begin
   inherited;
-  FThresholdForDialog := ltMessage;
-  FThreshold := ltInfo;
-  FShowCounter := TDictionary<cardinal, cardinal>.Create;
+  fThresholdForDialog := ltMessage;
+  fThreshold := ltInfo;
+  fShowCounter := TDictionary<cardinal, cardinal>.Create;
   PrepareButtonOk;
 end;
 
 destructor TLogAdapter.Destroy;
 begin
-  FShowCounter.Free;
+  fShowCounter.Free;
   inherited;
 end;
 
@@ -122,28 +122,28 @@ end;
 
 procedure TLogAdapter.PrepareButtonOk;
 begin
-  FButtonSet := [TMsgDlgBtn.mbOK];
-  FDefaultButton := TMsgDlgBtn.mbOK;
+  fButtonSet := [TMsgDlgBtn.mbOK];
+  fDefaultButton := TMsgDlgBtn.mbOK;
 end;
 
 procedure TLogAdapter.PrepareButtonsOkIgnore;
 begin
   PrepareButtonOk;
-  Include( FButtonSet, TMsgDlgBtn.mbIgnore );
+  Include( fButtonSet, TMsgDlgBtn.mbIgnore );
 end;
 
 procedure TLogAdapter.PrepareButtonsYesNo( const ACancel: boolean );
 begin
-  FDefaultButton := TMsgDlgBtn.mbYes;
+  fDefaultButton := TMsgDlgBtn.mbYes;
   { Set up correct buttons }
-  FButtonSet := [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo];
+  fButtonSet := [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo];
   if ACancel then
-    FButtonSet := FButtonSet + [TMsgDlgBtn.mbCancel];
+    fButtonSet := fButtonSet + [TMsgDlgBtn.mbCancel];
 end;
 
 procedure TLogAdapter.SetDefaultResult;
 begin
-  FModalResult := MapButtonToResult( fDefaultButton );
+  fModalResult := MapButtonToResult( fDefaultButton );
 end;
 
 {$ENDREGION}
@@ -151,47 +151,47 @@ end;
 
 function TLogAdapter.Get_Enabled: boolean;
 begin
-  Result := FEnabled;
+  Result := fEnabled;
 end;
 
 function TLogAdapter.Get_LogCallStack: boolean;
 begin
-  Result := FLogCallStack;
+  Result := fLogCallStack;
 end;
 
 function TLogAdapter.Get_ModalResult: Integer;
 begin
-  Result := FModalResult;
+  Result := fModalResult;
 end;
 
 function TLogAdapter.Get_Threshold: TLogLevel;
 begin
-  Result := FThreshold;
+  Result := fThreshold;
 end;
 
 function TLogAdapter.Get_ThresholdForDialog: TLogLevel;
 begin
-  Result := FThresholdForDialog;
+  Result := fThresholdForDialog;
 end;
 
 procedure TLogAdapter.Set_Enabled( const AValue: boolean );
 begin
-  FEnabled := AValue;
+  fEnabled := AValue;
 end;
 
 procedure TLogAdapter.Set_LogCallStack( const AValue: boolean );
 begin
-  FLogCallStack := AValue;
+  fLogCallStack := AValue;
 end;
 
 procedure TLogAdapter.Set_Threshold( ALogLevel: TLogLevel );
 begin
-  FThreshold := ALogLevel;
+  fThreshold := ALogLevel;
 end;
 
 procedure TLogAdapter.Set_ThresholdForDialog( ALogLevel: TLogLevel );
 begin
-  FThresholdForDialog := ALogLevel;
+  fThresholdForDialog := ALogLevel;
 end;
 
 {$ENDREGION}
@@ -234,17 +234,17 @@ var
   key: cardinal;
 begin
   key := HashMessage( AMessage );
-  FShowCounter.AddOrSetValue( key, 0 );
+  fShowCounter.AddOrSetValue( key, 0 );
 end;
 
 procedure TLogAdapter.IncrementShowCounter( const AKey: cardinal );
 begin
-  FShowCounter.AddOrSetValue( AKey, ShowCounter( AKey ) + 1 );
+  fShowCounter.AddOrSetValue( AKey, ShowCounter( AKey ) + 1 );
 end;
 
 function TLogAdapter.ShowCounter( const AKey: cardinal ): cardinal;
 begin
-  if not FShowCounter.TryGetValue( AKey, Result ) then
+  if not fShowCounter.TryGetValue( AKey, Result ) then
     Result := 0;
 end;
 
@@ -261,7 +261,7 @@ begin
   try
     { Log the event, with callback to ShowMessage from descendant if needed }
     Event( s, ALevel );
-    Result := ( FModalResult = mrYes );
+    Result := ( fModalResult = mrYes );
   finally
     PrepareButtonOk;
   end;
@@ -278,18 +278,18 @@ begin
       msgDlgType := TMsgDlgType.mtConfirmation;
 {$IFDEF MSWINDOWS}
 {$IFDEF FireMonkey}
-    FModalResult := TDialogServiceSync.MessageDialog( PrepareForDialog( ALogMessage ), msgDlgType, AButtons, ADefaultBtn, 0 )
+    fModalResult := TDialogServiceSync.MessageDialog( PrepareForDialog( ALogMessage ), msgDlgType, AButtons, ADefaultBtn, 0 )
 {$ELSE}
-    FModalResult := MessageDlg( PrepareForDialog( ALogMessage ), msgDlgType, AButtons, 0 )
+    fModalResult := MessageDlg( PrepareForDialog( ALogMessage ), msgDlgType, AButtons, 0 )
 {$ENDIF}
 {$ENDIF}
 {$IFDEF IOS}
-      FModalResult := TDialogServiceSync.MessageDialog( PrepareForDialog( ALogMessage ), msgDlgType, AButtons, ADefaultBtn, 0 )
+      fModalResult := TDialogServiceSync.MessageDialog( PrepareForDialog( ALogMessage ), msgDlgType, AButtons, ADefaultBtn, 0 )
 {$ENDIF}
   end
   else
-    FModalResult := MapButtonToResult( FDefaultButton );
-  Result := FModalResult;
+    fModalResult := MapButtonToResult( fDefaultButton );
+  Result := fModalResult;
 end;
 
 function TLogAdapter.HashMessage( const s: string ): cardinal;
@@ -316,7 +316,7 @@ begin
       { Log the event but without dialog }
       Event( 'IGNORED ( ShownBefore=%d, MaxTimes = %d ): ' + AMessage, [shownBefore, AMaxTimes], ALevel );
       ThresholdForDialog := savedLevel;
-      FModalResult := mrIgnore;
+      fModalResult := mrIgnore;
     end
     else
     begin
