@@ -85,6 +85,4 @@ end;
 
 {$ENDREGION}
 
-begin
-
 end.
