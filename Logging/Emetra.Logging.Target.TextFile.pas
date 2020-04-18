@@ -20,7 +20,7 @@ type
     { Property accessors }
     function URI: string;
   public
-    constructor Create( AFileName: string ); reintroduce;
+    constructor Create( const AFileName: string ); reintroduce;
     destructor Destroy; override;
   end;
 
@@ -36,7 +36,7 @@ const
   MAX_ERRORS = 256;
   UTF8BOM: array [0 .. 2] of byte = ( $EF, $BB, $BF );
 
-constructor TLogWriter.Create( AFileName: string );
+constructor TLogWriter.Create( const AFileName: string );
 begin
   inherited Create;
   fCriticalSection := TCriticalSection.Create;
