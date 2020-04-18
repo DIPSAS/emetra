@@ -13,7 +13,7 @@ type
   TSmartInspectTarget = class( TInterfacedObject, ILogItemTarget )
   private
     procedure LogToSi( ALevel: TSiLevel; AColor: TColor; const AText: string );
-    procedure Send( ALogItem: IBasicLogItem );
+    procedure Send( const ALogItem: IBasicLogItem );
     function URI: string;
   public
     procedure AfterConstruction; override;
@@ -52,7 +52,7 @@ begin
     SiAuto.SiMain.LogColored( ALevel, AColor, AText );
 end;
 
-procedure TSmartInspectTarget.Send( ALogItem: IBasicLogItem );
+procedure TSmartInspectTarget.Send( const ALogItem: IBasicLogItem );
 begin
   case ALogItem.LogLevel of
     ltDebug: LogToSi( lvDebug, mcTransparent, ALogItem.PlainText );

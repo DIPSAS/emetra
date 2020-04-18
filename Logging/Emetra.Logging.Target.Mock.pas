@@ -9,7 +9,7 @@ uses
 type
   TMockTarget = class( TInterfacedObject, ILogItemTarget )
   private
-    procedure Send( ALogItem: IBasicLogItem );
+    procedure Send( const ALogItem: IBasicLogItem );
     function URI: string;
   end;
 
@@ -17,7 +17,7 @@ implementation
 
 { TDummyTarget }
 
-procedure TMockTarget.Send( ALogItem: IBasicLogItem );
+procedure TMockTarget.Send( const ALogItem: IBasicLogItem );
 begin
   { Do nothing }
 end;

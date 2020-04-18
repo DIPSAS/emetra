@@ -4,8 +4,9 @@ interface
 
 uses
   {Logging}
-  Emetra.Logging.Target.Interfaces,
   Emetra.Logging.LogItem.Interfaces,
+  Emetra.Logging.Target.Interfaces,
+  Emetra.Logging.Target.GrayLog.Interfaces,
   {Standard}
   IdUdpClient,
   System.Classes,
@@ -13,19 +14,6 @@ uses
   System.RegularExpressions;
 
 type
-  IGrayLogDispatcher = interface( ILogItemTarget )
-    ['{46338DCD-636D-4FF0-B5B2-7E37EAE7D53C}']
-    function Get_Port: integer;
-    function Get_Server: string;
-    function Get_ServerCount: integer;
-    { Add more than one target }
-    procedure AddLogServer( const AHost: string; const APort: integer );
-    { Properties }
-    property Server: string read Get_Server;
-    property Port: integer read Get_Port;
-    property ServerCount: integer read Get_ServerCount;
-  end;
-
   TGrayLogDispatcher = class( TInterfacedObject, ILogItemTarget, IGrayLogDispatcher )
   strict private
     fUseCustomExtractors: boolean;
@@ -39,10 +27,8 @@ type
     fHost: string;
     fDomainName: string;
     fProcessName: string;
-    { Initialize }
-    procedure Initialize;
+  private
     function URI: string;
-    { Properties }
   private
     { IGrayLogDispatcher }
     function Get_Port: integer;
@@ -50,14 +36,14 @@ type
     function Get_ServerCount: integer;
     procedure AddLogServer( const AGrayLogServer: string; const AGrayLogUdpPort: integer );
     { ILogItemTarget }
-    procedure Send( ALogItem: IBasicLogItem );
+    procedure Send( const ALogItem: IBasicLogItem );
   public
+    { Initialization }
     constructor Create( const AGrayLogHost: string; const APort: integer; const AUseCustomExtractors: boolean = false ); overload;
-    procedure BeforeDestruction; override;
+    destructor Destroy; override;
   end;
 
 const
-  DEFAULT_GRAYLOG_SERVER = 'graylog.dips.no';
   DEFAULT_GRAYLOG_PORT   = 12201;
 
   { IniFile settings }
@@ -98,14 +84,6 @@ resourcestring
 constructor TGrayLogDispatcher.Create( const AGrayLogHost: string; const APort: integer; const AUseCustomExtractors: boolean = false );
 begin
   inherited Create;
-  Initialize;
-  fUseCustomExtractors := AUseCustomExtractors;
-  AddLogServer( AGrayLogHost, APort );
-end;
-
-procedure TGrayLogDispatcher.Initialize;
-begin
-  inherited;
   fHost := 'COMPUTER';
   fDomainName := 'DOMAIN';
   fProcessName := ExtractFileName( ParamStr( 0 ) );
@@ -125,9 +103,11 @@ begin
   fHandlebarsMatcher.Create( RGX_ANONYMIZE_THIS );
   { Create a list of udp clients, one per server }
   fGrayLogUdpClients := TObjectList<TIdUDPClient>.Create( True );
+  fUseCustomExtractors := AUseCustomExtractors;
+  AddLogServer( AGrayLogHost, APort );
 end;
 
-procedure TGrayLogDispatcher.BeforeDestruction;
+destructor TGrayLogDispatcher.Destroy;
 begin
   fGrayLogUdpClients.Free;
   inherited;
@@ -146,7 +126,7 @@ begin
   Result := Copy( Result, 2, maxint );
 end;
 
-procedure TGrayLogDispatcher.Send( ALogItem: IBasicLogItem );
+procedure TGrayLogDispatcher.Send( const ALogItem: IBasicLogItem );
 var
   udp: TIdUDPClient;
   currMatch: TMatch;
