@@ -24,10 +24,8 @@ type
   public
     procedure NonInvokablePublicMethod( const ARandomInteger: integer );
   public
-    [Setup]
-    procedure Setup;
-    [TearDown]
-    procedure TearDown;
+    procedure AfterConstruction; override;
+    procedure BeforeDestruction; override;
     [Test]
     procedure SendRandomNumberToPublishedMethod;
     [Test]
@@ -75,8 +73,9 @@ const
   CMD_ADD_PERSON = 'AddPerson';
   CMDTARGET_TEST = 'Test';
 
-procedure TTestCommandMediator.Setup;
+procedure TTestCommandMediator.AfterConstruction;
 begin
+  inherited;
   fCommandHandler := TCommandMediator.Create( GlobalLog );
   fCommandHandler.RegisterReceiver( CMDTARGET_TEST, Self );
   fCommandHandler.RegisterReceiver( CMD_ADD_PERSON, Self );
@@ -84,9 +83,10 @@ begin
   fExecutions := 0;
 end;
 
-procedure TTestCommandMediator.TearDown;
+procedure TTestCommandMediator.BeforeDestruction;
 begin
   fCommandHandler.Free;
+  inherited;
 end;
 
 function TTestCommandMediator.ExecuteCmd( const ACommand: ICommand ): boolean;
