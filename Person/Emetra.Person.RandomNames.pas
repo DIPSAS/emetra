@@ -19,11 +19,12 @@ type
 
   TRandomNames = class( TObject )
   strict private
-    fGirls: TNameList;
-    fBoys: TNameList;
-    fSurnames: TNameList;
     fDoubleSurnames: boolean;
     fDoubleFirstnames: boolean;
+    fBoys: TNameList;
+    fGirls: TNameList;
+    fSurnames: TNameList;
+    fUndefined: TNameList;
   public
     procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
@@ -52,18 +53,18 @@ end;
 
 procedure TNameList.AddMultiple( const ANames: string );
 var
-  lstNames: TNameList;
+  nameList: TNameList;
 begin
-  lstNames := TNameList.Create;
+  nameList := TNameList.Create;
   try
-    lstNames.CommaText := ANames;
-    while lstNames.Count > 0 do
+    nameList.CommaText := ANames;
+    while nameList.Count > 0 do
     begin
-      Self.Add( lstNames[0] );
-      lstNames.Delete( 0 );
+      Self.Add( nameList[0] );
+      nameList.Delete( 0 );
     end;
   finally
-    lstNames.Free;
+    nameList.Free;
   end;
 end;
 
@@ -75,13 +76,13 @@ begin
   fSurnames := TNameList.Create;
   fBoys := TNameList.Create;
   fGirls := TNameList.Create;
-  FUndefined := TNameList.Create;
+  fUndefined := TNameList.Create;
 
-  with FUndefined do
+  with fUndefined do
   begin
     AddMultiple( 'Alex,Bobby,Chris,Jone,Nicola' );
   end;
-  
+
   with fBoys do
   begin
     { Guttenavn 50 på topp 2020 }
@@ -198,7 +199,7 @@ begin
   case ASex of
     sexUnknown:
       begin
-        Result := FUndefined[Random(fUndefined.Count )];;
+        Result := fUndefined[Random( fUndefined.Count )];;
         exit;
       end;
     sexFemale:
