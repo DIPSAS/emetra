@@ -127,8 +127,7 @@ var
   parentDirectory: string;
   fileName: string;
 begin
-  fileName := ExtractFileName( ParamStr( 0 ) );
-  fileName := ChangeFileExt( fileName, '-' + GetUserName + LOG_EXT );
+  fileName := ChangeFileExt( ExtractFileName( ParamStr( 0 ) ), '-' + GetUserName + LOG_EXT );
   if AExtraFileId <> EmptyStr then
     fileName := StringReplace( fileName, LOG_EXT, '-' + AExtraFileId + LOG_EXT, [] );
   defaultDirectory := ExtractFilePath( ParamStr( 0 ) ) + 'LOGS\';
