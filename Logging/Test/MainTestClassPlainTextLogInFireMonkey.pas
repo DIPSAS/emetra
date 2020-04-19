@@ -262,7 +262,7 @@ begin
         lbItem.name := Format( 'Item%d', [lboxLogItems.Count] );
         lbItem.Text := DateToISO8601( LogItem.Timestamp );
         lbItem.Height := lboxLogItems.Count;
-        lbItem.ItemData.Detail := LogItem.Text;
+        lbItem.ItemData.Detail := LogItem.LogText;
         lbItem.Data := TObject( LogItem );
         lbItem.StyledSettings := [];
         lbItem.TextSettings.Font.Size := 12;
@@ -302,7 +302,7 @@ begin
       begin
         lvItem := lviewLogItems.Items.Add;
         lvItem.Text := DateToISO8601( LogItem.Timestamp );
-        lvItem.Detail := LogItem.Text;
+        lvItem.Detail := LogItem.LogText;
         if LogItem.LogLevel > ltInfo then
           lvItem.ImageIndex := ord( LogItem.LogLevel );
       end;
