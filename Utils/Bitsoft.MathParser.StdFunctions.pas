@@ -12,19 +12,12 @@ uses
   System.Generics.Collections;
 
 type
-  TFunctionCall = function( const AValue: extended ): extended of object;
 
-  TFunctionInfo = class( TObject )
-  strict private
-    fOnCall: TFunctionCall;
-  public
-    constructor Create( AOnCall: TFunctionCall );
-    property OnCall: TFunctionCall read fOnCall;
-  end;
+  TFunctionMethodCall = function( const Value: extended ): extended of object;
 
-  TStdFunctions = class( TInterfacedPersistent )
+  TStdFunctions = class( TObject )
   strict private
-    fFunctionNames: TObjectDictionary<string, TFunctionInfo>;
+    fFunctionMethods: TObjectDictionary<string, TFunctionMethodCall>;
   private
     procedure ClearFunctions;
   protected
@@ -55,7 +48,7 @@ type
     constructor Create; reintroduce;
     destructor Destroy; override;
     { Other methods }
-    procedure RegisterFunction( const AFunctionName: string; AOnCall: TFunctionCall );
+    procedure RegisterFunction( const AFunctionName: string; AOnCall: TFunctionMethodCall );
   end;
 
 implementation
@@ -63,20 +56,12 @@ implementation
 uses
   System.DateUtils;
 
-{ TSavedCall }
-
-constructor TFunctionInfo.Create( AOnCall: TFunctionCall );
-begin
-  inherited Create;
-  fOnCall := AOnCall;
-end;
-
 { TStdFunctions }
 
 constructor TStdFunctions.Create;
 begin
   inherited;
-  fFunctionNames := TObjectDictionary<string, TFunctionInfo>.Create( [doOwnsValues] );
+  fFunctionMethods := TObjectDictionary<string, TFunctionMethodCall>.Create;
   RegisterFunction( 'ISPOS', IsPos );
   RegisterFunction( 'IS_POS', IsPos );
   RegisterFunction( 'POS', IsPos );
@@ -100,7 +85,7 @@ begin
   RegisterFunction( 'Cos', Cos );
   RegisterFunction( 'Sin', Sin );
   RegisterFunction( 'Tan', Tan );
-  RegisterFunction( 'Atan', Atan );
+  RegisterFunction( 'ATan', Atan );
   RegisterFunction( 'ArcTan', Atan );
   RegisterFunction( 'SQR', Sqrt );
   RegisterFunction( 'SQRT', Sqrt );
@@ -109,38 +94,33 @@ end;
 destructor TStdFunctions.Destroy;
 begin
   ClearFunctions;
-  fFunctionNames.Free;
+  fFunctionMethods.Free;
   inherited;
 end;
 
 procedure TStdFunctions.ClearFunctions;
 begin
-  fFunctionNames.Clear;
+  fFunctionMethods.Clear;
 end;
 
 function TStdFunctions.Evaluate( const AFuncName: string; const AValue: extended ): extended;
 var
-  savedCall: TFunctionInfo;
+  functionToCall: TFunctionMethodCall;
 begin
-  if fFunctionNames.TryGetValue( AnsiUppercase( AFuncName ), savedCall ) then
-  begin
-    if Assigned( savedCall ) and Assigned( savedCall.OnCall ) then
-      Result := savedCall.OnCall( AValue )
-    else
-      raise Exception.CreateFmt( 'OnCall unassigned: %s', [AFuncName] );
-  end
+  if fFunctionMethods.TryGetValue( AnsiUppercase( AFuncName ), functionToCall ) then
+    Result := functionToCall( AValue )
   else
     raise Exception.CreateFmt( 'Unknown function: %s', [AFuncName] );
 end;
 
 function TStdFunctions.FunctionExists( const AFuncName: string ): boolean;
 begin
-  Result := fFunctionNames.ContainsKey( AnsiUppercase( AFuncName ) );
+  Result := fFunctionMethods.ContainsKey( AnsiUppercase( AFuncName ) );
 end;
 
-procedure TStdFunctions.RegisterFunction( const AFunctionName: string; AOnCall: TFunctionCall );
+procedure TStdFunctions.RegisterFunction( const AFunctionName: string; AOnCall: TFunctionMethodCall );
 begin
-  fFunctionNames.Add( AnsiUppercase( AFunctionName ), TFunctionInfo.Create( AOnCall ) );
+  fFunctionMethods.Add( AnsiUppercase( AFunctionName ), AOnCall );
 end;
 
 function TStdFunctions.Signum( const AValue: extended ): extended;

@@ -54,9 +54,9 @@ type
 const
   ParserStackSize = 24;
   MaxFuncNameLen  = 16;
-  ExpLimit        = 11356;
-  SqrLimit        = 1E2466;
-  MaxExpLen       = 4;
+  EXP_LIMIT        = 11356;
+  MAX_EXP_LENGTH  = 4;
+  EULERS_NUMBER   = 2.7182818284590452353602874;
 
 type
 
@@ -199,18 +199,18 @@ end;
 function TMathParser.NextTokenIs( const AFunctionNameToLookFor: string ): Boolean;
 { Checks to see if the BitSoft.MathParser is about to read a function }
 var
-  p, functionLength: Integer;
-  functionName: string;
+  P, functionLength: Integer;
+  FunctionName: string;
 begin
-  p := fPosition;
-  functionName := '';
+  P := fPosition;
+  FunctionName := '';
   { Standard functions have A-Z in their names only }
-  while ( p <= Length( fInput ) ) and CharInSet( fInput[p], ['A' .. 'Z', 'a' .. 'z'] ) do
+  while ( P <= Length( fInput ) ) and CharInSet( fInput[P], ['A' .. 'Z', 'a' .. 'z'] ) do
   begin
-    functionName := functionName + fInput[p];
-    Inc( p );
+    FunctionName := FunctionName + fInput[P];
+    Inc( P );
   end;
-  if SameText( functionName, AFunctionNameToLookFor ) then
+  if SameText( FunctionName, AFunctionNameToLookFor ) then
   begin
     functionLength := Length( AFunctionNameToLookFor );
     fCurrToken.FuncName := UpperCase( Copy( fInput, fPosition, functionLength ) );
@@ -243,6 +243,11 @@ begin
     AValue := System.Pi;
     Result := True;
   end
+  else if SameText( variableName, 'E' ) then
+  begin
+    AValue := EULERS_NUMBER;
+    Result := True;
+  end
   else
   begin
     if Assigned( fOnGetVar ) then
@@ -252,7 +257,7 @@ begin
     else
       fLogText := fLogText + ' #' + variableName + '#';
   end;
-end; { IsVar }
+end;
 
 function TMathParser.NextToken: TTokenType;
 { Gets the next Token from the Input stream }
@@ -308,7 +313,7 @@ begin
         Inc( TLen );
       end; { if }
       NumLen := 1;
-      while ( TLen <= Length( fInput ) ) and CharInSet( fInput[TLen], ['0' .. '9'] ) and ( NumLen <= MaxExpLen ) do
+      while ( TLen <= Length( fInput ) ) and CharInSet( fInput[TLen], ['0' .. '9'] ) and ( NumLen <= MAX_EXP_LENGTH ) do
       begin
         NumString := NumString + fInput[TLen];
         Inc( NumLen );
@@ -635,7 +640,7 @@ begin
         Pop( Token2 );
         if Token2.Value <= 0 then
           fMathError := True
-        else if ( Token1.Value * Ln( Token2.Value ) < -ExpLimit ) or ( Token1.Value * Ln( Token2.Value ) > ExpLimit ) then
+        else if ( Token1.Value * Ln( Token2.Value ) < -EXP_LIMIT ) or ( Token1.Value * Ln( Token2.Value ) > EXP_LIMIT ) then
           fMathError := True
         else
           fCurrToken.Value := Exp( Token1.Value * Ln( Token2.Value ) );
@@ -664,7 +669,7 @@ begin
           fCurrToken.Value := Abs( fCurrToken.Value )
         else if Token1.FuncName = 'EXP' then
         begin
-          if ( fCurrToken.Value < -ExpLimit ) or ( fCurrToken.Value > ExpLimit ) then
+          if ( fCurrToken.Value < -EXP_LIMIT ) or ( fCurrToken.Value > EXP_LIMIT ) then
             fMathError := True
           else
             fCurrToken.Value := Exp( fCurrToken.Value );
