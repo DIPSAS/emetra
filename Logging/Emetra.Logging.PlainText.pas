@@ -36,6 +36,7 @@ type
     fSaveToFileOnDestroy: boolean;
     fStopWatch: array [0 .. MAX_NESTING] of TStopWatch;
     fUserIniFile: TIniFile;
+  private
     class var InstanceCounter: Integer;
     function GetFileNameLog: string;
     function GetStandardFileName: string;
@@ -44,20 +45,14 @@ type
     procedure ReadLogSettings;
     procedure SetDefaultFileName;
   private
-
     { Other members }
     procedure AddStrings( const ATitle: string; AStrings: TStrings );
-    function LogYesNo( const AMessage: string; const ALevel: TLogLevel = ltMessage; const ACancel: boolean = false ): boolean; {
-      Summary:
-      Allows the log object to get a confirmation to the user, on a certain level.
-      The default answer is always Yes if this message is below the dialog
-      threshold, and there is no Cancel button as default. }
+    function LogYesNo( const AMessage: string; const ALevel: TLogLevel = ltMessage; const ACancel: boolean = false ): boolean;
     procedure Event( const AMessage: string; const Args: array of const; const ALogType: TLogLevel = ltInfo ); overload; {
       Add a formatted message to the log }
     { Call stack logging }
     procedure EnterMethod( AInstance: TObject; const AMethodName: string );
     procedure LeaveMethod( AInstance: TObject; const AMethodName: string );
-
     { Outcomes logging }
     procedure SilentError( const AMessage: string; const Args: array of const ); overload;
     procedure SilentError( const AMessage: string ); overload;
@@ -65,7 +60,6 @@ type
     procedure SilentWarning( const AMessage: string; const Args: array of const ); overload;
     procedure SilentSuccess( const AMessage: string ); overload;
     procedure SilentSuccess( const AMessage: string; const Args: array of const ); overload;
-
     { SQL Logging }
     procedure LogSqlQuery( const ASQL: string );
     procedure LogSqlCommand( const ASQL: string );
@@ -73,11 +67,9 @@ type
     { Property accessors }
     function Get_Count: Integer;
     function Get_Text: string;
-    { Override event }
-    procedure Event( AMessage: string; const ALogType: TLogLevel = ltInfo ); overload; override; {
-      Add a message to the log }
-    { Counter for messages that should be shown a limited number of times }
+    { Other methods }
     function ShowCounter( const AKey: cardinal ): cardinal; override;
+    procedure Event( AMessage: string; const ALogType: TLogLevel = ltInfo ); overload; override;
     procedure IncrementShowCounter( const AKey: cardinal ); override;
     procedure ResetCounter( const AMessage: string );
   public
@@ -88,10 +80,10 @@ type
     procedure BeforeDestruction; override;
     { Class members }
     class function GetFileNameSettings: string;
-    { Targets }
+    { ILogMultiTarget }
+    function TargetCount: Integer;
     procedure AddTarget( const ATarget: ILogItemTarget );
     procedure ClearAllTargets;
-    function TargetCount: Integer;
     { Other members }
     function TryGetItem( const AIndex: Integer; out AItem: IBasicLogItem ): boolean;
     procedure Clear;
@@ -126,8 +118,6 @@ uses
   {Standard}
   System.IOUtils;
 
-{$REGION 'Initialization'}
-
 function GetLogFileName( const AExtraFileId: string = '' ): string;
 const
   LOG_EXT = '.LOG';
@@ -149,6 +139,8 @@ begin
     logDirectory := defaultDirectory;
   Result := TPath.GetFullPath( logDirectory ) + fileName;
 end;
+
+{$REGION 'Initialization'}
 
 constructor TPlainTextLog.Create;
 begin
@@ -196,11 +188,6 @@ end;
 procedure TPlainTextLog.Clear;
 begin
   fItems.Clear;
-end;
-
-procedure TPlainTextLog.ClearAllTargets;
-begin
-  fItems.ClearAllTargets;
 end;
 
 procedure TPlainTextLog.ReadLogSettings;
@@ -400,6 +387,7 @@ end;
 
 procedure TPlainTextLog.Event( AMessage: string; const ALogType: TLogLevel );
 var
+  responseCode: Integer;
   dialogText: string;
 begin
   fCriticalSection.Enter;
@@ -417,14 +405,15 @@ begin
         dialogText := PrepareForDialog( AMessage );
         if TMsgDlgBtn.mbNo in ButtonSet then
         begin
-          ShowCrossPlatformDialog( dialogText, ButtonSet, TMsgDlgBtn.mbYes, 0, ALogType );
+          responseCode := ShowCrossPlatformDialog( dialogText, ButtonSet, TMsgDlgBtn.mbYes, 0, ALogType );
           if ModalResult = mrCancel then
             raise EAbort.Create( 'CanceledByUser' );
         end
         else if TMsgDlgBtn.mbIgnore in ButtonSet then
-          ShowCrossPlatformDialog( dialogText, [TMsgDlgBtn.mbOk, TMsgDlgBtn.mbIgnore], TMsgDlgBtn.mbOk, 0, ALogType )
+          responseCode := ShowCrossPlatformDialog( dialogText, [TMsgDlgBtn.mbOk, TMsgDlgBtn.mbIgnore], TMsgDlgBtn.mbOk, 0, ALogType )
         else
-          ShowCrossPlatformDialog( dialogText, [TMsgDlgBtn.mbOk], TMsgDlgBtn.mbOk, 0, ALogType );
+          responseCode := ShowCrossPlatformDialog( dialogText, [TMsgDlgBtn.mbOk], TMsgDlgBtn.mbOk, 0, ALogType );
+        Event( LOG_STUB + 'ResponseCode: %d', [ClassName, 'Event', responseCode] );
       end;
     end;
   finally
@@ -462,23 +451,11 @@ begin
 end;
 
 {$ENDREGION}
+{$REGION 'ILogMultiTarget'}
 
-procedure TPlainTextLog.AddStrings( const ATitle: string; AStrings: TStrings );
-var
-  n: Integer;
+procedure TPlainTextLog.ClearAllTargets;
 begin
-  fCriticalSection.Enter;
-  try
-    fItems.Add( TLogItem.Create( 0, ATitle, ltInfo ) );
-    n := 0;
-    while n < AStrings.Count do
-    begin
-      fItems.Add( TLogItem.Create( 0, AStrings[n], ltInfo ) );
-      inc( n );
-    end;
-  finally
-    fCriticalSection.Leave;
-  end;
+  fItems.ClearAllTargets;
 end;
 
 procedure TPlainTextLog.AddTarget( const ATarget: ILogItemTarget );
@@ -487,42 +464,13 @@ begin
   Event( '%s.AddTarget( %s )', [ClassName, TObject( ATarget ).ClassName] );
 end;
 
-procedure TPlainTextLog.SaveToFile( const AFileName: string );
-var
-  currItem: TLogItem;
-  plainTextLines: TStringList;
-begin
-  fCriticalSection.Enter;
-  try
-    plainTextLines := TStringList.Create;
-    try
-      for currItem in fItems do
-        plainTextLines.Add( currItem.PlainText );
-      plainTextLines.SaveToFile( AFileName );
-    finally
-      plainTextLines.Free;
-    end;
-  finally
-    fCriticalSection.Leave;
-  end;
-end;
-
-procedure TPlainTextLog.SetUserFile( AIniFile: TIniFile );
-begin
-  fUserIniFile := AIniFile;
-end;
-
 function TPlainTextLog.TargetCount: Integer;
 begin
   Result := fItems.TargetCount;
 end;
 
-function TPlainTextLog.TryGetItem( const AIndex: Integer; out AItem: IBasicLogItem ): boolean;
-begin
-  Result := ( AIndex > -1 ) and ( AIndex < fItems.Count );
-  if Result then
-    AItem := fItems[AIndex];
-end;
+{$ENDREGION}
+{$REGION 'Counter for messages with Ignore button'}
 
 const
   SECTION_MESSAGE = 'Message';
@@ -568,6 +516,58 @@ begin
   end
   else
     inherited IncrementShowCounter( AKey );
+end;
+
+{$ENDREGION}
+
+procedure TPlainTextLog.AddStrings( const ATitle: string; AStrings: TStrings );
+var
+  n: Integer;
+begin
+  fCriticalSection.Enter;
+  try
+    fItems.Add( TLogItem.Create( 0, ATitle, ltInfo ) );
+    n := 0;
+    while n < AStrings.Count do
+    begin
+      fItems.Add( TLogItem.Create( 0, AStrings[n], ltInfo ) );
+      inc( n );
+    end;
+  finally
+    fCriticalSection.Leave;
+  end;
+end;
+
+procedure TPlainTextLog.SaveToFile( const AFileName: string );
+var
+  currItem: TLogItem;
+  plainTextLines: TStringList;
+begin
+  fCriticalSection.Enter;
+  try
+    plainTextLines := TStringList.Create;
+    try
+      for currItem in fItems do
+        plainTextLines.Add( currItem.PlainText );
+      plainTextLines.SaveToFile( AFileName );
+    finally
+      plainTextLines.Free;
+    end;
+  finally
+    fCriticalSection.Leave;
+  end;
+end;
+
+procedure TPlainTextLog.SetUserFile( AIniFile: TIniFile );
+begin
+  fUserIniFile := AIniFile;
+end;
+
+function TPlainTextLog.TryGetItem( const AIndex: Integer; out AItem: IBasicLogItem ): boolean;
+begin
+  Result := ( AIndex > -1 ) and ( AIndex < fItems.Count );
+  if Result then
+    AItem := fItems[AIndex];
 end;
 
 initialization
