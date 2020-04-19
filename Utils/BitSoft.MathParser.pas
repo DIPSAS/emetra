@@ -35,6 +35,9 @@ unit BitSoft.MathParser;
   October 4, 2004
   * Added IS_ZERO and IS_NULL function alias
   * Added HAS_DATA function with alias IS_POSITIVE
+  Later
+  * Refactored extensively.
+  * Added date functions
 
   ========================================================================= }
 
@@ -42,12 +45,11 @@ interface
 
 uses
   BitSoft.MathParser.StdFunctions,
-{$IFDEF Win32}
-  Windows,
-{$ELSE}
-  WinProcs, Wintypes,
-{$ENDIF}
+  {Standard}
   System.SysUtils, System.DateUtils, System.Math;
+
+type
+  TTokenError = ( errNone = 0, errParserStack = 1, errBadRange = 2, errExpression = 3, errOperator = 4, errOpenParen = 5, errCloseParen = 6, errInvalidNum = 7 );
 
 const
   ParserStackSize = 24;
@@ -56,171 +58,136 @@ const
   SqrLimit        = 1E2466;
   MaxExpLen       = 4;
 
-  ErrParserStack  = 1;
-  ErrBadRange     = 2;
-  ErrExpression   = 3;
-  ErrOperator     = 4;
-  ErrOpenParen    = 5;
-  ErrOpCloseParen = 6;
-  ErrInvalidNum   = 7;
-  TotalErrors     = 7;
-
 type
-  TErrorRange = 0 .. TotalErrors;
 
-  TokenTypes = ( Plus, Minus, Times, Divide, Expo, OParen, CParen, Num, Func, EOL, Bad, ERR, Modu );
+  TTokenType = ( Plus, Minus, Times, Divide, Expo, OParen, CParen, Num, Func, EOL, Bad, ERR, Modu );
 
-  TokenRec = record
+  TTokenRecord = record
     State: Byte;
     case Byte of
-      0:
-        ( Value: Extended );
-      2:
-        ( FuncName: String[ MaxFuncNameLen ] );
+      0: ( Value: Extended );
+      2: ( FuncName: string[MaxFuncNameLen] );
   end; { TokenRec }
 
-  TMathParser = class;
   TGetVarEvent = procedure( Sender: TObject; VarName: string; var Value: Extended; var Found: Boolean ) of object;
 
-  TOnFunctionEvent = function( const AFunctionName: string; const Value: Extended ): Extended of object;
+  TOnFunctionEvent = function( const FunctionName: string; const Value: Extended ): Extended of object;
 
-  TParseErrorEvent = procedure( Sender: TMathParser; const ParseError: Integer ) of object;
+  TMathParser = class;
+
+  TParseErrorEvent = procedure( Sender: TMathParser; const TokenError: TTokenError ) of object;
 
   TMathParser = class( TStdFunctions )
-  private
+  strict private
     { Private declarations }
     fInput: string;
     fLogText: string;
-    FOnGetVar: TGetVarEvent;
-    FOnParseError: TParseErrorEvent;
-    FParseValue: Extended;
-    FParseError: Boolean;
-    FTokenError: TErrorRange;
-    fCurrToken: TokenRec;
+    fOnGetVar: TGetVarEvent;
+    fOnParseError: TParseErrorEvent;
+    fParseValue: Extended;
+    fParseError: Boolean;
+    fTokenError: TTokenError;
+    fCurrToken: TTokenRecord;
     fMathError: Boolean;
-    fStack: array [ 1 .. ParserStackSize ] of TokenRec;
+    fStack: array [1 .. ParserStackSize] of TTokenRecord;
     fStackTop: 0 .. ParserStackSize;
     fTokenLen: Word;
-    fTokenType: TokenTypes;
+    fTokenType: TTokenType;
     fPosition: Word;
   protected
     { Protected declarations }
-    function GotoState( Production: Word ): Word;
-    function IsCustomFunc: Boolean;
-    function IsStandardFunc( const s: String ): Boolean;
-    function IsVar( var Value: Extended ): Boolean;
-    function NextToken: TokenTypes;
-    procedure Push( Token: TokenRec );
-    procedure Pop( var Token: TokenRec );
+    function GotoState( AProduction: Word ): Word;
+    function IsCustomFunction: Boolean;
+    function NextTokenIs( const AFunctionNameToLookFor: string ): Boolean;
+    function NextTokenIsVariable( var AValue: Extended ): Boolean;
+    function NextToken: TTokenType;
+    procedure Push( const AToken: TTokenRecord );
+    procedure Pop( var AToken: TTokenRecord );
     procedure Reduce( Reduction: Word );
     procedure Shift( State: Word );
     procedure SetInput( const AValue: string );
   public
-    { Public declarations }
-    procedure AfterConstruction; override;
+    { Other methods }
     function Parse: Extended;
-    property OnGetVar: TGetVarEvent read FOnGetVar write FOnGetVar;
-    property OnParseError: TParseErrorEvent read FOnParseError write FOnParseError;
+    { Properties }
+    property OnGetVar: TGetVarEvent read fOnGetVar write fOnGetVar;
+    property OnParseError: TParseErrorEvent read fOnParseError write fOnParseError;
     property ParseString: string read fInput write SetInput;
-    property ParseError: Boolean read FParseError;
-    property ParseValue: Extended read FParseValue;
-    property TokenError: TErrorRange read FTokenError;
+    property ParseError: Boolean read fParseError;
+    property ParseValue: Extended read fParseValue;
+    property TokenError: TTokenError read fTokenError;
     property LogText: string read fLogText;
   end;
 
 implementation
 
-procedure TMathParser.AfterConstruction;
-begin
-  inherited;
-  fInput := '';
-end;
-
-function TMathParser.GotoState( Production: Word ): Word;
-{ Finds the new state based on the just-completed production and the
-  top state. }
+function TMathParser.GotoState( AProduction: Word ): Word;
+{ Finds the new state based on the just-completed production and the top state. }
 var
   State: Word;
 begin
   GotoState := 0;
-  State := fStack[ fStackTop ].State;
-  if ( Production <= 3 ) then
+  State := fStack[fStackTop].State;
+  if ( AProduction <= 3 ) then
   begin
     case State of
-      0:
-        GotoState := 1;
-      9:
-        GotoState := 19;
-      20:
-        GotoState := 28;
+      0: GotoState := 1;
+      9: GotoState := 19;
+      20: GotoState := 28;
     end; { case }
   end
-  else if Production <= 6 then
+  else if AProduction <= 6 then
   begin
     case State of
-      0, 9, 20:
-        GotoState := 2;
-      12:
-        GotoState := 21;
-      13:
-        GotoState := 22;
+      0, 9, 20: GotoState := 2;
+      12: GotoState := 21;
+      13: GotoState := 22;
     end; { case }
   end
-  else if ( Production <= 8 ) or ( Production = 100 ) then
+  else if ( AProduction <= 8 ) or ( AProduction = 100 ) then
   begin
     case State of
-      0, 9, 12, 13, 20:
-        GotoState := 3;
-      14:
-        GotoState := 23;
-      15:
-        GotoState := 24;
-      16:
-        GotoState := 25;
-      40:
-        GotoState := 80;
+      0, 9, 12, 13, 20: GotoState := 3;
+      14: GotoState := 23;
+      15: GotoState := 24;
+      16: GotoState := 25;
+      40: GotoState := 80;
     end; { case }
   end
-  else if Production <= 10 then
+  else if AProduction <= 10 then
   begin
     case State of
-      0, 9, 12 .. 16, 20, 40:
-        GotoState := 4;
+      0, 9, 12 .. 16, 20, 40: GotoState := 4;
     end; { case }
   end
-  else if Production <= 12 then
+  else if AProduction <= 12 then
   begin
     case State of
-      0, 9, 12 .. 16, 20, 40:
-        GotoState := 6;
-      5:
-        GotoState := 17;
+      0, 9, 12 .. 16, 20, 40: GotoState := 6;
+      5: GotoState := 17;
     end; { case }
   end
   else
   begin
     case State of
-      0, 5, 9, 12 .. 16, 20, 40:
-        GotoState := 8;
+      0, 5, 9, 12 .. 16, 20, 40: GotoState := 8;
     end; { case }
   end;
 end; { GotoState }
 
-function TMathParser.IsCustomFunc: Boolean;
+function TMathParser.IsCustomFunction: Boolean;
 var
   P, SLen: Integer;
   customFunctionName: string;
-  foundAt: Integer;
 begin
   P := fPosition;
   customFunctionName := '';
-  while ( P <= Length( fInput ) ) and CharInSet( fInput[ P ], [ 'A' .. 'Z', 'a' .. 'z', '0' .. '9', '_', '.' ] ) do
+  while ( P <= Length( fInput ) ) and CharInSet( fInput[P], ['A' .. 'Z', 'a' .. 'z', '0' .. '9', '_', '.'] ) do
   begin
-    customFunctionName := customFunctionName + fInput[ P ];
+    customFunctionName := customFunctionName + fInput[P];
     Inc( P );
   end;
-  { if Valid function }
-  Result := FFunctionNames.Find( customFunctionName, foundAt );
+  Result := FunctionExists( customFunctionName );
   if Result then
   begin
     SLen := Length( customFunctionName );
@@ -229,58 +196,65 @@ begin
   end;
 end;
 
-function TMathParser.IsStandardFunc( const s: String ): Boolean;
+function TMathParser.NextTokenIs( const AFunctionNameToLookFor: string ): Boolean;
 { Checks to see if the BitSoft.MathParser is about to read a function }
 var
-  P, SLen: Integer;
-  FuncName: string;
+  p, functionLength: Integer;
+  functionName: string;
 begin
-  P := fPosition;
-  FuncName := '';
-  while ( P <= Length( fInput ) ) and CharInSet( fInput[ P ], [ 'A' .. 'Z', 'a' .. 'z' ] ) do
+  p := fPosition;
+  functionName := '';
+  { Standard functions have A-Z in their names only }
+  while ( p <= Length( fInput ) ) and CharInSet( fInput[p], ['A' .. 'Z', 'a' .. 'z'] ) do
   begin
-    FuncName := FuncName + fInput[ P ];
-    Inc( P );
+    functionName := functionName + fInput[p];
+    Inc( p );
   end;
-  if UpperCase( FuncName ) = s then
+  if SameText( functionName, AFunctionNameToLookFor ) then
   begin
-    SLen := Length( s );
-    fCurrToken.FuncName := UpperCase( Copy( fInput, fPosition, SLen ) );
-    Inc( fPosition, SLen );
+    functionLength := Length( AFunctionNameToLookFor );
+    fCurrToken.FuncName := UpperCase( Copy( fInput, fPosition, functionLength ) );
+    Inc( fPosition, functionLength );
     Result := True;
   end
   else
     Result := False;
 end;
 
-function TMathParser.IsVar( var Value: Extended ): Boolean;
+function TMathParser.NextTokenIsVariable( var AValue: Extended ): Boolean;
 var
-  VarName: string;
+  variableName: string;
 begin
   Result := False;
-  VarName := '';
-  while ( fPosition <= Length( fInput ) ) and CharInSet( fInput[ fPosition ], [ 'A' .. 'Z', 'a' .. 'z', '0' .. '9', '_', '.' ] ) do
+  variableName := '';
+  { Custom functions can have underscores and numbers as well }
+  while ( fPosition <= Length( fInput ) ) and CharInSet( fInput[fPosition], ['A' .. 'Z', 'a' .. 'z', '0' .. '9', '_', '.'] ) do
   begin
-    VarName := VarName + fInput[ fPosition ];
+    variableName := variableName + fInput[fPosition];
     Inc( fPosition );
   end; { while }
-  if SameText( VarName, 'NOW' ) then
+  if SameText( variableName, 'NOW' ) then
   begin
-    Value := Now;
+    AValue := Now;
+    Result := True;
+  end
+  else if SameText( variableName, 'PI' ) then
+  begin
+    AValue := System.Pi;
     Result := True;
   end
   else
   begin
-    if Assigned( FOnGetVar ) then
-      FOnGetVar( Self, VarName, Value, Result );
+    if Assigned( fOnGetVar ) then
+      fOnGetVar( Self, variableName, AValue, Result );
     if Result then
-      fLogText := fLogText + Format( ' %s=%g', [ VarName, Value ] )
+      fLogText := fLogText + Format( ' %s=%g', [variableName, AValue] )
     else
-      fLogText := fLogText + ' #' + VarName + '#';
+      fLogText := fLogText + ' #' + variableName + '#';
   end;
 end; { IsVar }
 
-function TMathParser.NextToken: TokenTypes;
+function TMathParser.NextToken: TTokenType;
 { Gets the next Token from the Input stream }
 var
   NumString: string;
@@ -290,7 +264,7 @@ var
   Decimal: Boolean;
 begin
   NextToken := ERR;
-  while ( fPosition <= Length( fInput ) ) and ( fInput[ fPosition ] in [ ' ' ] ) do
+  while ( fPosition <= Length( fInput ) ) and ( fInput[fPosition] in [' '] ) do
     Inc( fPosition );
   fTokenLen := fPosition;
   if fPosition > Length( fInput ) then
@@ -299,22 +273,21 @@ begin
     fTokenLen := 0;
     Exit;
   end; { if }
-  Ch := UpCase( fInput[ fPosition ] );
-  if CharInSet( Ch, [ '!' ] ) then
+  Ch := UpCase( fInput[fPosition] );
+  if CharInSet( Ch, ['!'] ) then
   begin
     NextToken := ERR;
     fTokenLen := 0;
     Exit;
   end; { if }
-  if CharInSet( Ch, [ '0' .. '9', '.' ] ) then
+  if CharInSet( Ch, ['0' .. '9', '.'] ) then
   begin
     NumString := '';
     TLen := fPosition;
     Decimal := False;
-    while ( TLen <= Length( fInput ) ) and ( CharInSet( fInput[ TLen ], [ '0' .. '9' ] ) or
-      ( ( fInput[ TLen ] = '.' ) and ( not Decimal ) ) ) do
+    while ( TLen <= Length( fInput ) ) and ( CharInSet( fInput[TLen], ['0' .. '9'] ) or ( ( fInput[TLen] = '.' ) and ( not Decimal ) ) ) do
     begin
-      NumString := NumString + fInput[ TLen ];
+      NumString := NumString + fInput[TLen];
       if Ch = '.' then
         Decimal := True;
       Inc( TLen );
@@ -325,30 +298,30 @@ begin
       fTokenLen := 0;
       Exit;
     end; { if }
-    if ( TLen <= Length( fInput ) ) and ( UpCase( fInput[ TLen ] ) = 'E' ) then
+    if ( TLen <= Length( fInput ) ) and ( UpCase( fInput[TLen] ) = 'E' ) then
     begin
       NumString := NumString + 'E';
       Inc( TLen );
-      if CharInSet( fInput[ TLen ], [ '+', '-' ] ) then
+      if CharInSet( fInput[TLen], ['+', '-'] ) then
       begin
-        NumString := NumString + fInput[ TLen ];
+        NumString := NumString + fInput[TLen];
         Inc( TLen );
       end; { if }
       NumLen := 1;
-      while ( TLen <= Length( fInput ) ) and CharInSet( fInput[ TLen ], [ '0' .. '9' ] ) and ( NumLen <= MaxExpLen ) do
+      while ( TLen <= Length( fInput ) ) and CharInSet( fInput[TLen], ['0' .. '9'] ) and ( NumLen <= MaxExpLen ) do
       begin
-        NumString := NumString + fInput[ TLen ];
+        NumString := NumString + fInput[TLen];
         Inc( NumLen );
         Inc( TLen );
       end; { while }
     end; { if }
-    if NumString[ 1 ] = '.' then
+    if NumString[1] = '.' then
       NumString := '0' + NumString;
     Val( NumString, fCurrToken.Value, Check );
     if Check <> 0 then
     begin
       fMathError := True;
-      FTokenError := ErrInvalidNum;
+      fTokenError := errInvalidNum;
       Inc( fPosition, Pred( Check ) );
     end { if }
     else
@@ -359,24 +332,21 @@ begin
     end; { else }
     Exit;
   end { if }
-  else if CharInSet( Ch, [ 'a' .. 'z', 'A' .. 'Z' ] ) then
+  else if CharInSet( Ch, ['a' .. 'z', 'A' .. 'Z'] ) then
   begin
-    if IsStandardFunc( 'ABS' ) or IsStandardFunc( 'ATAN' ) or IsStandardFunc( 'TAN' ) or IsStandardFunc( 'COS' ) or
-      IsStandardFunc( 'EXP' ) or IsStandardFunc( 'LN' ) or IsStandardFunc( 'ROUND' ) or IsStandardFunc( 'SIGN' ) or
-      IsStandardFunc( 'SIN' ) or IsStandardFunc( 'SQRT' ) or IsStandardFunc( 'SQR' ) or IsStandardFunc( 'TRUNC' ) or IsCustomFunc
-    then
+    if NextTokenIs( 'ABS' ) or NextTokenIs( 'EXP' ) or NextTokenIs( 'LN' ) or NextTokenIs( 'ROUND' ) or NextTokenIs( 'TRUNC' ) or IsCustomFunction then
     begin
       NextToken := Func;
       fTokenLen := fPosition - fTokenLen;
       Exit;
     end; { if }
-    if IsStandardFunc( 'MOD' ) then
+    if NextTokenIs( 'MOD' ) then
     begin
       NextToken := Modu;
       fTokenLen := fPosition - fTokenLen;
       Exit;
     end; { if }
-    if IsVar( fCurrToken.Value ) then
+    if NextTokenIsVariable( fCurrToken.Value ) then
     begin
       NextToken := Num;
       fTokenLen := fPosition - fTokenLen;
@@ -392,20 +362,13 @@ begin
   else
   begin
     case Ch of
-      '+':
-        NextToken := Plus;
-      '-':
-        NextToken := Minus;
-      '*':
-        NextToken := Times;
-      '/':
-        NextToken := Divide;
-      '^':
-        NextToken := Expo;
-      '(':
-        NextToken := OParen;
-      ')':
-        NextToken := CParen;
+      '+': NextToken := Plus;
+      '-': NextToken := Minus;
+      '*': NextToken := Times;
+      '/': NextToken := Divide;
+      '^': NextToken := Expo;
+      '(': NextToken := OParen;
+      ')': NextToken := CParen;
     else
       begin
         NextToken := Bad;
@@ -419,44 +382,44 @@ begin
   end; { else if }
 end; { NextToken }
 
-procedure TMathParser.Pop( var Token: TokenRec );
+procedure TMathParser.Pop( var AToken: TTokenRecord );
 { Pops the top Token off of the stack }
 begin
-  Token := fStack[ fStackTop ];
+  AToken := fStack[fStackTop];
   Dec( fStackTop );
 end; { Pop }
 
-procedure TMathParser.Push( Token: TokenRec );
+procedure TMathParser.Push( const AToken: TTokenRecord );
 { Pushes a new Token onto the stack }
 begin
   if fStackTop = ParserStackSize then
-    FTokenError := ErrParserStack
+    fTokenError := errParserStack
   else
   begin
     Inc( fStackTop );
-    fStack[ fStackTop ] := Token;
+    fStack[fStackTop] := AToken;
   end; { else }
 end; { Push }
 
 function TMathParser.Parse: Extended;
 { Parses an input stream }
 var
-  FirstToken: TokenRec;
+  FirstToken: TTokenRecord;
   Accepted: Boolean;
 begin
   inherited;
   fPosition := 1;
   fStackTop := 0;
-  FTokenError := 0;
+  fTokenError := errNone;
   fMathError := False;
-  FParseError := False;
+  fParseError := False;
   Accepted := False;
   FirstToken.State := 0;
   FirstToken.Value := 0;
   Push( FirstToken );
   fTokenType := NextToken;
   repeat
-    case fStack[ fStackTop ].State of
+    case fStack[fStackTop].State of
       0, 9, 12 .. 16, 20, 40:
         begin
           if fTokenType = Num then
@@ -474,7 +437,7 @@ begin
           end { else if }
           else
           begin
-            FTokenError := ErrExpression;
+            fTokenError := errExpression;
             Dec( fPosition, fTokenLen );
           end; { else }
         end; { case of }
@@ -488,7 +451,7 @@ begin
             Shift( 13 )
           else
           begin
-            FTokenError := ErrOperator;
+            fTokenError := errOperator;
             Dec( fPosition, fTokenLen );
           end; { else }
         end; { case of }
@@ -525,32 +488,26 @@ begin
             Shift( 9 )
           else
           begin
-            FTokenError := ErrExpression;
+            fTokenError := errExpression;
             Dec( fPosition, fTokenLen );
           end; { else }
         end; { case of }
-      6:
-        Reduce( 10 );
-      7:
-        Reduce( 13 );
-      8:
-        Reduce( 12 );
-      10:
-        Reduce( 15 );
+      6: Reduce( 10 );
+      7: Reduce( 13 );
+      8: Reduce( 12 );
+      10: Reduce( 15 );
       11:
         begin
           if fTokenType = OParen then
             Shift( 20 )
           else
           begin
-            FTokenError := ErrOpenParen;
+            fTokenError := errOpenParen;
             Dec( fPosition, fTokenLen );
           end; { else }
         end; { case of }
-      17:
-        Reduce( 9 );
-      18:
-        raise Exception.Create( 'Bad token state' );
+      17: Reduce( 9 );
+      18: raise Exception.Create( 'Bad token state' );
       19:
         begin
           if fTokenType = Plus then
@@ -561,7 +518,7 @@ begin
             Shift( 27 )
           else
           begin
-            FTokenError := ErrOpCloseParen;
+            fTokenError := errCloseParen;
             Dec( fPosition, fTokenLen );
           end;
         end; { case of }
@@ -583,16 +540,11 @@ begin
           else
             Reduce( 2 );
         end; { case of }
-      23:
-        Reduce( 4 );
-      24:
-        Reduce( 5 );
-      25:
-        Reduce( 7 );
-      26:
-        Reduce( 11 );
-      27:
-        Reduce( 14 );
+      23: Reduce( 4 );
+      24: Reduce( 5 );
+      25: Reduce( 7 );
+      26: Reduce( 11 );
+      27: Reduce( 14 );
       28:
         begin
           if fTokenType = Plus then
@@ -603,35 +555,33 @@ begin
             Shift( 29 )
           else
           begin
-            FTokenError := ErrOpCloseParen;
+            fTokenError := errCloseParen;
             Dec( fPosition, fTokenLen );
           end; { else }
         end; { case of }
-      29:
-        Reduce( 16 );
-      80:
-        Reduce( 100 );
+      29: Reduce( 16 );
+      80: Reduce( 100 );
     end; { case }
-  until Accepted or ( FTokenError <> 0 );
-  if FTokenError <> 0 then
+  until Accepted or ( fTokenError <> errNone );
+  if fTokenError <> errNone then
   begin
-    if FTokenError = ErrBadRange then
+    if fTokenError = errBadRange then
       Dec( fPosition, fTokenLen );
-    if Assigned( FOnParseError ) then
-      FOnParseError( Self, FTokenError );
+    if Assigned( fOnParseError ) then
+      fOnParseError( Self, fTokenError );
   end; { if }
-  FParseError := fMathError or ( FTokenError <> 0 );
-  if FParseError then
-    FParseValue := 0
+  fParseError := fMathError or ( fTokenError <> errNone );
+  if fParseError then
+    fParseValue := 0
   else
-    FParseValue := fStack[ fStackTop ].Value;
-  Result := FParseValue;
+    fParseValue := fStack[fStackTop].Value;
+  Result := fParseValue;
 end; { Parse }
 
 procedure TMathParser.Reduce( Reduction: Word );
 { Completes a reduction }
 var
-  Token1, Token2: TokenRec;
+  Token1, Token2: TTokenRecord;
 begin
   case Reduction of
     1:
@@ -696,10 +646,8 @@ begin
         Pop( Token2 );
         fCurrToken.Value := -Token1.Value;
       end;
-    11:
-      raise Exception.Create( 'Invalid reduction' );
-    13:
-      raise Exception.Create( 'Invalid reduction' );
+    11: raise Exception.Create( 'Invalid reduction' );
+    13: raise Exception.Create( 'Invalid reduction' );
     14:
       begin
         Pop( Token1 );
@@ -714,17 +662,6 @@ begin
         Pop( Token1 );
         if Token1.FuncName = 'ABS' then
           fCurrToken.Value := Abs( fCurrToken.Value )
-        else if Token1.FuncName = 'ATAN' then
-          fCurrToken.Value := ArcTan( fCurrToken.Value )
-        else if SameText( Token1.FuncName, 'TAN' ) then
-          fCurrToken.Value := Tan( fCurrToken.Value )
-        else if Token1.FuncName = 'COS' then
-        begin
-          if ( fCurrToken.Value < -9E18 ) or ( fCurrToken.Value > 9E18 ) then
-            fMathError := True
-          else
-            fCurrToken.Value := Cos( fCurrToken.Value )
-        end
         else if Token1.FuncName = 'EXP' then
         begin
           if ( fCurrToken.Value < -ExpLimit ) or ( fCurrToken.Value > ExpLimit ) then
@@ -746,27 +683,6 @@ begin
           else
             fCurrToken.Value := Round( fCurrToken.Value );
         end
-        else if Token1.FuncName = 'SIN' then
-        begin
-          if ( fCurrToken.Value < -9E18 ) or ( fCurrToken.Value > 9E18 ) then
-            fMathError := True
-          else
-            fCurrToken.Value := Sin( fCurrToken.Value )
-        end
-        else if Token1.FuncName = 'SQRT' then
-        begin
-          if fCurrToken.Value < 0 then
-            fMathError := True
-          else
-            fCurrToken.Value := Sqrt( fCurrToken.Value );
-        end
-        else if Token1.FuncName = 'SQR' then
-        begin
-          if ( fCurrToken.Value < -SqrLimit ) or ( fCurrToken.Value > SqrLimit ) then
-            fMathError := True
-          else
-            fCurrToken.Value := Sqr( fCurrToken.Value );
-        end
         else if Token1.FuncName = 'TRUNC' then
         begin
           if ( fCurrToken.Value < -1E9 ) or ( fCurrToken.Value > 1E9 ) then
@@ -777,8 +693,7 @@ begin
         else
           fCurrToken.Value := Evaluate( Token1.FuncName, fCurrToken.Value )
       end;
-    3, 6, 8, 10, 12, 15:
-      Pop( fCurrToken );
+    3, 6, 8, 10, 12, 15: Pop( fCurrToken );
   end; { case }
   fCurrToken.State := GotoState( Reduction );
   Push( fCurrToken );
@@ -795,18 +710,21 @@ end; { Shift }
 procedure TMathParser.SetInput( const AValue: string );
 var
   n: Integer;
+  errMsg: string;
 begin
   fInput := '';
   n := 1;
   while n <= Length( AValue ) do
   begin
-    case AValue[ n ] of
-      ' ', '+', '-', '*', '/', '!', '^', '(', ')', '_', '.', 'A' .. 'Z', 'a' .. 'z', '0' .. '9':
-        fInput := fInput + AValue[ n ];
-      #13, #10, #9:
-        fInput := fInput + ' ';
+    case AValue[n] of
+      ' ', '+', '-', '*', '/', '!', '^', '(', ')', '_', '.', 'A' .. 'Z', 'a' .. 'z', '0' .. '9': fInput := fInput + AValue[n];
+      #13, #10, #9: fInput := fInput + ' ';
     else
-      raise Exception.CreateFmt( '%s.SetInput("%s") ', [ ClassName, Copy( AValue, 1, 24 ), n ] );
+      begin
+        errMsg := AValue;
+        errMsg.Insert( n - 1, '!' );
+        { } raise EInvalidArgument.CreateFmt( 'Invalid input at position %d in "%s" (at exclamation point).', [n, errMsg] );
+      end;
     end;
     Inc( n );
   end;

@@ -1,50 +1,60 @@
-﻿unit Bitsoft.MathParser.StdFunctions;
+﻿/// <summary>
+/// This unit is refactored from the Bitsoft Math parser. It keeps registered
+/// standard functions together in a specialized unit.
+/// </summary>
+unit Bitsoft.MathParser.StdFunctions;
 
 interface
 
 uses
-  Classes, SysUtils;
+  System.Classes,
+  System.SysUtils,
+  System.Generics.Collections;
 
 type
-  TFunctionCall = function( const Value: extended ): extended of object;
-
-  TCallMethod = function( Sender: TObject; AClassType: TClass; const AMethodName: String; var AParams: Variant): Variant of object;
-  IScriptObject = interface ['{17B28DB7-F2E7-4EA0-9906-345BF712A137}']
-    function Alias: string;
-    function CallMethod(Sender: TObject; AClassType: TClass; const AMethodName: String; var AParams: Variant): Variant;
-  end;
+  TFunctionCall = function( const AValue: extended ): extended of object;
 
   TFunctionInfo = class( TObject )
-  private
-    FOnCall: TFunctionCall;
-    FName: string;
+  strict private
+    fOnCall: TFunctionCall;
   public
-    constructor Create( const AName: string; AOnCall: TFunctionCall );
-    property Name: string read FName;
-    property OnCall: TFunctionCall read FOnCall;
+    constructor Create( AOnCall: TFunctionCall );
+    property OnCall: TFunctionCall read fOnCall;
   end;
 
-  TStdFunctions = class( TInterfacedPersistent, IScriptObject )
+  TStdFunctions = class( TInterfacedPersistent )
+  strict private
+    fFunctionNames: TObjectDictionary<string, TFunctionInfo>;
   private
     procedure ClearFunctions;
   protected
-    FFunctionNames: TStringList;
-    function Alias: string;
-    function Evaluate( const AFuncName: string; const AValue: Extended ): extended;
-    function IsPos( const AValue: Extended ): Extended;
-    function IsNeg( const AValue: Extended ): Extended;
-    function IsNotPos( const AValue: Extended ): Extended;
-    function IsNotNeg( const AValue: Extended ): Extended;
-    function IsZero( const AValue: Extended ): Extended;
-    function Signum( const AValue: Extended ): Extended;
-    function YearOf( const AValue: Extended ): Extended;
-    function MonthOf( const AValue: Extended ): Extended;
-    function DayOf( const AValue: Extended ): Extended;
-    function WeekOf( const AValue: Extended ): Extended;
+    function Evaluate( const AFuncName: string; const AValue: extended ): extended;
+    function FunctionExists( const AFuncName: string ): boolean;
+    { Math }
+    function Sqrt( const AValue: extended ): extended;
+    { Trigonometric functions }
+    function Sin( const AValue: extended ): extended;
+    function Cos( const AValue: extended ): extended;
+    function Atan( const AValue: extended ): extended;
+    function Tan( const AValue: extended ): extended;
+    { Logical funtions, returing 0 or 1 }
+    function IsNeg( const AValue: extended ): extended;
+    function IsNotNeg( const AValue: extended ): extended;
+    function IsNotPos( const AValue: extended ): extended;
+    function IsPos( const AValue: extended ): extended;
+    function IsZero( const AValue: extended ): extended;
+    { Signum function, returning -1, 0 or 1 }
+    function Signum( const AValue: extended ): extended;
+    { Date functions that map directly to System.DateUtils equivalents }
+    function DayOf( const AValue: extended ): extended;
+    function MonthOf( const AValue: extended ): extended;
+    function WeekOf( const AValue: extended ): extended;
+    function YearOf( const AValue: extended ): extended;
   public
-    constructor Create; dynamic;
+    { Initialization }
+    constructor Create; reintroduce;
     destructor Destroy; override;
-    function CallMethod(Instance: TObject; AClassType: TClass; const AMethodName: String; var AParams: Variant): Variant;
+    { Other methods }
     procedure RegisterFunction( const AFunctionName: string; AOnCall: TFunctionCall );
   end;
 
@@ -55,24 +65,18 @@ uses
 
 { TSavedCall }
 
-constructor TFunctionInfo.Create(const AName: string; AOnCall: TFunctionCall);
+constructor TFunctionInfo.Create( AOnCall: TFunctionCall );
 begin
-  FName := AName;
-  FOnCall := AOnCall;
+  inherited Create;
+  fOnCall := AOnCall;
 end;
 
-{TStdFunctions}
+{ TStdFunctions }
 
 constructor TStdFunctions.Create;
 begin
   inherited;
-  FFunctionNames := TStringList.Create;
-  with FFunctionNames do
-  begin
-    Sorted := true;
-    Duplicates := dupError;
-    CaseSensitive := false;
-  end;
+  fFunctionNames := TObjectDictionary<string, TFunctionInfo>.Create( [doOwnsValues] );
   RegisterFunction( 'ISPOS', IsPos );
   RegisterFunction( 'IS_POS', IsPos );
   RegisterFunction( 'POS', IsPos );
@@ -93,51 +97,33 @@ begin
   RegisterFunction( 'MonthOf', MonthOf );
   RegisterFunction( 'DayOf', DayOf );
   RegisterFunction( 'WeekOf', WeekOf );
+  RegisterFunction( 'Cos', Cos );
+  RegisterFunction( 'Sin', Sin );
+  RegisterFunction( 'Tan', Tan );
+  RegisterFunction( 'Atan', Atan );
+  RegisterFunction( 'ArcTan', Atan );
+  RegisterFunction( 'SQR', Sqrt );
+  RegisterFunction( 'SQRT', Sqrt );
 end;
 
 destructor TStdFunctions.Destroy;
 begin
   ClearFunctions;
-  FFunctionNames.Free;
+  fFunctionNames.Free;
   inherited;
 end;
 
-function TStdFunctions.Alias: string;
+procedure TStdFunctions.ClearFunctions;
 begin
-  Result := 'Std';
+  fFunctionNames.Clear;
 end;
 
-function TStdFunctions.CallMethod(Instance: TObject; AClassType: TClass; const AMethodName: String; var AParams: Variant): Variant;
+function TStdFunctions.Evaluate( const AFuncName: string; const AValue: extended ): extended;
 var
-  floatVal: double;
-begin
-  if SameText( AMethodName, 'IsNull' ) then
-  begin
-    floatVal := AParams[0];
-    Result := IsZero( floatVal );
-  end
-  else if SameText( AMethodName, 'IsPos' ) then
-  begin
-    floatVal := AParams[0];
-    Result := IsPos( floatVal );
-  end
-  else if SameText( AMethodName, 'IsNeg' ) then
-  begin
-    floatVal := AParams[0];
-    Result := IsNeg( floatVal );
-  end
-  else
-    raise Exception.CreateFmt( 'Unknown method: %s', [AMethodName] );
-end;
-
-function TStdFunctions.Evaluate(const AFuncName: string; const AValue: Extended): extended;
-var
-  foundAt: integer;
   savedCall: TFunctionInfo;
 begin
-  if FFunctionNames.Find( AFuncName, foundAt ) then
+  if fFunctionNames.TryGetValue( AnsiUppercase( AFuncName ), savedCall ) then
   begin
-    savedCall := TFunctionInfo( FFunctionNames.Objects[foundAt] );
     if Assigned( savedCall ) and Assigned( savedCall.OnCall ) then
       Result := savedCall.OnCall( AValue )
     else
@@ -147,77 +133,113 @@ begin
     raise Exception.CreateFmt( 'Unknown function: %s', [AFuncName] );
 end;
 
-function TStdFunctions.IsPos( const AValue: Extended ): Extended;
+function TStdFunctions.FunctionExists( const AFuncName: string ): boolean;
 begin
-  if AValue > 0 then Result := 1
-  else Result := 0;
+  Result := fFunctionNames.ContainsKey( AnsiUppercase( AFuncName ) );
 end;
 
-function TStdFunctions.IsNeg( const AValue: Extended ): Extended;
+procedure TStdFunctions.RegisterFunction( const AFunctionName: string; AOnCall: TFunctionCall );
 begin
-  if AValue < 0 then Result := 1
-  else Result := 0;
+  fFunctionNames.Add( AnsiUppercase( AFunctionName ), TFunctionInfo.Create( AOnCall ) );
 end;
 
-function TStdFunctions.IsNotPos( const AValue: Extended ): Extended;
+function TStdFunctions.Signum( const AValue: extended ): extended;
 begin
-  Result := 1 - IsPos( AValue );
+  if AValue < 0 then
+    Result := -1
+  else if AValue > 0 then
+    Result := 1
+  else
+    Result := 0;
 end;
 
-function TStdFunctions.IsNotNeg( const AValue: Extended ): Extended;
+{$REGION 'Trigonometric functions'}
+
+function TStdFunctions.Cos( const AValue: extended ): extended;
+begin
+  Result := System.Cos( AValue );
+end;
+
+function TStdFunctions.Sin( const AValue: extended ): extended;
+begin
+  Result := System.Sin( AValue );
+end;
+
+function TStdFunctions.Sqrt( const AValue: extended ): extended;
+begin
+  Result := System.Sqrt( AValue );
+end;
+
+function TStdFunctions.Tan( const AValue: extended ): extended;
+begin
+  Result := System.Tangent( AValue );
+end;
+
+function TStdFunctions.Atan( const AValue: extended ): extended;
+begin
+  Result := System.ArcTan( AValue );
+end;
+
+{$ENDREGION}
+{$REGION 'Logical functions'}
+
+function TStdFunctions.IsNeg( const AValue: extended ): extended;
+begin
+  if AValue < 0 then
+    Result := 1
+  else
+    Result := 0;
+end;
+
+function TStdFunctions.IsNotNeg( const AValue: extended ): extended;
 begin
   Result := 1 - IsNeg( AValue );
 end;
 
-function TStdFunctions.IsZero( const AValue: Extended ): Extended;
+function TStdFunctions.IsNotPos( const AValue: extended ): extended;
 begin
-  if AValue = 0 then Result := 1
-  else Result := 0;
+  Result := 1 - IsPos( AValue );
 end;
 
-function TStdFunctions.Signum(const AValue: Extended): Extended;
+function TStdFunctions.IsPos( const AValue: extended ): extended;
 begin
-  if AValue < 0 then Result := -1
-  else if AValue > 0 then Result := 1
-  else Result := 0;
+  if AValue > 0 then
+    Result := 1
+  else
+    Result := 0;
 end;
 
-procedure TStdFunctions.RegisterFunction(const AFunctionName: string; AOnCall: TFunctionCall );
+function TStdFunctions.IsZero( const AValue: extended ): extended;
 begin
-  FFunctionNames.AddObject( AFunctionName, TFunctionInfo.Create( AFunctionName, AOnCall ) );
+  if AValue = 0 then
+    Result := 1
+  else
+    Result := 0;
 end;
 
-procedure TStdFunctions.ClearFunctions;
-var
-  thisObject: TObject;
-begin
-  while FFunctionNames.Count > 0 do
-  begin
-    thisObject := FFunctionNames.Objects[0];
-    thisObject.Free;
-    FFunctionNames.Delete(0);
-  end;
-end;
+{$ENDREGION}
+{$REGION 'Date functions'}
 
-function TStdFunctions.DayOf(const AValue: Extended): Extended;
+function TStdFunctions.DayOf( const AValue: extended ): extended;
 begin
   Result := System.DateUtils.DayOf( AValue );
 end;
 
-function TStdFunctions.MonthOf(const AValue: Extended): Extended;
+function TStdFunctions.MonthOf( const AValue: extended ): extended;
 begin
   Result := System.DateUtils.MonthOf( AValue );
 end;
 
-function TStdFunctions.WeekOf(const AValue: Extended): Extended;
+function TStdFunctions.WeekOf( const AValue: extended ): extended;
 begin
   Result := System.DateUtils.WeekOf( AValue );
 end;
 
-function TStdFunctions.YearOf(const AValue: Extended): Extended;
+function TStdFunctions.YearOf( const AValue: extended ): extended;
 begin
   Result := System.DateUtils.YearOf( AValue );
 end;
 
+{$ENDREGION}
 
 end.

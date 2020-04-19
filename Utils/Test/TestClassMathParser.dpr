@@ -15,12 +15,11 @@
 {$ENDIF}
 
 uses
-  { Logging goes first }
   Emetra.Logging.SmartInspect,
-  { Other units }
   DUnitTestRunner,
   TestCaseMathParser in 'TestCaseMathParser.pas',
-  Bitsoft.MathParser.StdFunctions in '..\Bitsoft.MathParser.StdFunctions.pas';
+  Bitsoft.MathParser.StdFunctions in '..\Bitsoft.MathParser.StdFunctions.pas',
+  BitSoft.MathParser in '..\BitSoft.MathParser.pas';
 
 {$R *.RES}
 
