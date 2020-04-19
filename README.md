@@ -58,7 +58,7 @@ Some of them are added because times change, and the capabilities of the Delphi 
 We follow standards that are common in the .NET world (and probably other worlds as well):
 
 * Use dot notation when naming units, going from the general to the more specific after each dot.
-* Avoid more than three sections to a name, at most four.  
+* Avoid more than four sections to a name.  Five is allowed when the last one is "Interfaces".
 * Use subfolders for functional areas or subsystems.  
 * The names of the files in subsystems should generally reflect the file path.
 * It is acceptable to put small utility classes together in a **Utils** folder, in order keep library paths manageable.
