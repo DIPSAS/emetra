@@ -111,6 +111,7 @@ type
     function Evaluate: Extended; overload;
     function Evaluate( const AExpression: string ): Extended; overload;
     { Properties }
+    property Input: string read fInput;
     property LogText: string read fLogText;
     property ParseError: Boolean read fParseError;
     property ParseValue: Extended read fParseValue;
