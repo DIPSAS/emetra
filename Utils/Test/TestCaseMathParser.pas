@@ -91,8 +91,7 @@ end;
 procedure TestTMathParser.TestInvalidInput;
 begin
   try
-    fMathParser.ParseString := 'THIS IS #ONE TEST';
-    fMathParser.Parse;
+    fMathParser.Evaluate( 'THIS IS #ONE TEST' );
     CheckEquals( true, false, 'This code should never be reached' );
   except
     on E: Exception do
@@ -106,86 +105,58 @@ end;
 
 procedure TestTMathParser.TestIsNull;
 begin
-  fMathParser.ParseString := 'ISNULL(0)';
-  CheckEquals( 1, fMathParser.Parse, TXT_SHOULD_BE_ONE );
-  fMathParser.ParseString := 'ISNULL(1)';
-  CheckEquals( 0, fMathParser.Parse, TXT_SHOULD_BE_ZERO );
-  fMathParser.ParseString := 'ISNULL(-1)';
-  CheckEquals( 0, fMathParser.Parse, TXT_SHOULD_BE_ZERO );
+  CheckEquals( 1, fMathParser.Evaluate( 'ISNULL(0)' ), TXT_SHOULD_BE_ONE );
+  CheckEquals( 0, fMathParser.Evaluate( 'ISNULL(1)' ), TXT_SHOULD_BE_ZERO );
+  CheckEquals( 0, fMathParser.Evaluate( 'ISNULL(-1)' ), TXT_SHOULD_BE_ZERO );
 end;
 
 procedure TestTMathParser.TestIsPositive;
 begin
-  fMathParser.ParseString := 'ISPOS(0)';
-  CheckEquals( 0, fMathParser.Parse, TXT_SHOULD_BE_ZERO );
-  fMathParser.ParseString := 'ISPOS(1)';
-  CheckEquals( 1, fMathParser.Parse, TXT_SHOULD_BE_ONE );
-  fMathParser.ParseString := 'ISPOS(0.01)';
-  CheckEquals( 1, fMathParser.Parse, TXT_SHOULD_BE_ONE );
-  fMathParser.ParseString := 'ISPOS(-0.01)';
-  CheckEquals( 0, fMathParser.Parse, TXT_SHOULD_BE_ZERO );
-  fMathParser.ParseString := 'ISPOS(-1)';
-  CheckEquals( 0, fMathParser.Parse, TXT_SHOULD_BE_ZERO );
+  CheckEquals( 0, fMathParser.Evaluate( 'ISPOS(0)' ), TXT_SHOULD_BE_ZERO );
+  CheckEquals( 1, fMathParser.Evaluate( 'ISPOS(1)' ), TXT_SHOULD_BE_ONE );
+  CheckEquals( 1, fMathParser.Evaluate( 'ISPOS(0.01)' ), TXT_SHOULD_BE_ONE );
+  CheckEquals( 0, fMathParser.Evaluate( 'ISPOS(-0.01)' ), TXT_SHOULD_BE_ZERO );
+  CheckEquals( 0, fMathParser.Evaluate( 'ISPOS(-1)' ), TXT_SHOULD_BE_ZERO );
 end;
 
 procedure TestTMathParser.TestRounding;
 begin
-  fMathParser.ParseString := 'ROUND(3.49)';
-  CheckEquals( 3, fMathParser.Parse );
-  fMathParser.ParseString := 'ROUND(3.501)';
-  CheckEquals( 4, fMathParser.Parse );
-  fMathParser.ParseString := 'ROUND(-3.501)';
-  CheckEquals( -4, fMathParser.Parse );
+  CheckEquals( 3, fMathParser.Evaluate( 'ROUND(3.49)' ) );
+  CheckEquals( 4, fMathParser.Evaluate( 'ROUND(3.501)' ) );
+  CheckEquals( -4, fMathParser.Evaluate( 'ROUND(-3.501)' ) );
 end;
 
 procedure TestTMathParser.TestTrigononmetry;
 begin
-  fMathParser.ParseString := 'SIN(PI)';
-  CheckTrue( SameValue( 0, fMathParser.Parse, EPSILON ) );
-  fMathParser.ParseString := 'COS(PI)';
-  CheckTrue( SameValue( -1, fMathParser.Parse, EPSILON ) );
-  fMathParser.ParseString := 'SIN(PI/2)';
-  CheckTrue( SameValue( 1, fMathParser.Parse, EPSILON ) );
-  fMathParser.ParseString := 'COS(PI/2)';
-  CheckTrue( SameValue( 0, fMathParser.Parse, EPSILON ) );
-  fMathParser.ParseString := 'SIN(PI/6)';
-  CheckTrue( SameValue( 0.5, fMathParser.Parse, EPSILON ) );
-  fMathParser.ParseString := 'TAN(PI/4)';
-  CheckTrue( SameValue( 1, fMathParser.Parse, EPSILON ) );
-  fMathParser.ParseString := 'TAN(3*PI/4)';
-  CheckTrue( SameValue( -1, fMathParser.Parse, EPSILON ) );
+  CheckTrue( SameValue( 0, fMathParser.Evaluate( 'SIN(PI)' ), EPSILON ) );
+  CheckTrue( SameValue( -1, fMathParser.Evaluate( 'COS(PI)' ), EPSILON ) );
+  CheckTrue( SameValue( 1, fMathParser.Evaluate( 'SIN(PI/2)' ), EPSILON ) );
+  CheckTrue( SameValue( 0, fMathParser.Evaluate( 'COS(PI/2)' ), EPSILON ) );
+  CheckTrue( SameValue( 0.5, fMathParser.Evaluate( 'SIN(PI/6)' ), EPSILON ) );
+  CheckTrue( SameValue( 1, fMathParser.Evaluate( 'TAN(PI/4)' ), EPSILON ) );
+  CheckTrue( SameValue( -1, fMathParser.Evaluate( 'TAN(3*PI/4)' ), EPSILON ) );
 end;
 
 procedure TestTMathParser.TestTruncation;
 begin
-  fMathParser.ParseString := 'TRUNC(3.49)';
-  CheckEquals( 3, fMathParser.Parse );
-  fMathParser.ParseString := 'TRUNC(3.501)';
-  CheckEquals( 3, fMathParser.Parse );
-  fMathParser.ParseString := 'TRUNC(-3.49)';
-  CheckEquals( -3, fMathParser.Parse );
-  fMathParser.ParseString := 'TRUNC(-3.501)';
-  CheckEquals( -3, fMathParser.Parse );
+  CheckEquals( 3, fMathParser.Evaluate( 'TRUNC(3.49)' ) );
+  CheckEquals( 3, fMathParser.Evaluate( 'TRUNC(3.501)' ) );
+  CheckEquals( -3, fMathParser.Evaluate( 'TRUNC(-3.49)' ) );
+  CheckEquals( -3, fMathParser.Evaluate( 'TRUNC(-3.501)' ) );
 end;
 
 procedure TestTMathParser.TestSignum;
 begin
-  fMathParser.ParseString := 'SIGN(2)';
-  CheckEquals( 1, fMathParser.Parse, TXT_SHOULD_BE_ONE );
-  fMathParser.ParseString := 'SIGN(-1)';
-  CheckEquals( -1, fMathParser.Parse, TXT_SHOULD_BE_MINUS_ONE );
-  fMathParser.ParseString := 'SIGN(0)';
-  CheckEquals( 0, fMathParser.Parse, TXT_SHOULD_BE_ZERO );
+  CheckEquals( 1, fMathParser.Evaluate( 'SIGN(2)' ), TXT_SHOULD_BE_ONE );
+  CheckEquals( -1, fMathParser.Evaluate( 'SIGN(-1)' ), TXT_SHOULD_BE_MINUS_ONE );
+  CheckEquals( 0, fMathParser.Evaluate( 'SIGN(0)' ), TXT_SHOULD_BE_ZERO );
 end;
 
 procedure TestTMathParser.TestSquareRoot;
 begin
-  fMathParser.ParseString := 'SQRT(16)';
-  CheckEquals( 4, fMathParser.Parse );
-  fMathParser.ParseString := 'SQRT(9)';
-  CheckEquals( 3, fMathParser.Parse );
-  fMathParser.ParseString := 'SQRT(6.25)';
-  CheckTrue( SameValue( 2.5, fMathParser.Parse, EPSILON ) );
+  CheckEquals( 4, fMathParser.Evaluate( 'SQRT(16)' ) );
+  CheckEquals( 3, fMathParser.Evaluate( 'SQRT(9)' ) );
+  CheckTrue( SameValue( 2.5, fMathParser.Evaluate( 'SQRT(6.25)' ), EPSILON ) );
 end;
 
 procedure TestTMathParser.TestUnknownVariables;
@@ -198,28 +169,23 @@ const
 
 begin
   { Unknown variables are retrieved with HandleGetVar }
-  fMathParser.ParseString := TEST_EXPR;
-  CheckEquals( 1, fMathParser.Parse, TXT_SHOULD_BE_ONE );
+  CheckEquals( 1, fMathParser.Evaluate( TEST_EXPR ), TXT_SHOULD_BE_ONE );
 end;
 
 procedure TestTMathParser.TestDateFunctions;
 begin
   { Casing is odd on purpose }
-  fMathParser.ParseString := 'YEAROF(NOW)';
-  CheckEquals( YearOf( Now ), fMathParser.Parse, Format( TXT_SHOULD_BE_INTEGER, [YearOf( Now )] ) );
-  fMathParser.ParseString := 'MonthOf(Now)';
-  CheckEquals( MonthOf( Now ), fMathParser.Parse, Format( TXT_SHOULD_BE_INTEGER, [MonthOf( Now )] ) );
-  fMathParser.ParseString := 'dAYOf( NOW )';
-  CheckEquals( DayOf( Now ), fMathParser.Parse, Format( TXT_SHOULD_BE_INTEGER, [DayOf( Now )] ) );
-  fMathParser.ParseString := 'weekOF( now )';
-  CheckEquals( WeekOf( Now ), fMathParser.Parse, Format( TXT_SHOULD_BE_INTEGER, [WeekOf( Now )] ) );
+  CheckEquals( YearOf( Now ), fMathParser.Evaluate( 'YEAROF(NOW)' ), Format( TXT_SHOULD_BE_INTEGER, [YearOf( Now )] ) );
+  CheckEquals( MonthOf( Now ), fMathParser.Evaluate( 'MonthOf(Now)' ), Format( TXT_SHOULD_BE_INTEGER, [MonthOf( Now )] ) );
+  CheckEquals( DayOf( Now ), fMathParser.Evaluate( 'dAYOf( NOW )' ), Format( TXT_SHOULD_BE_INTEGER, [DayOf( Now )] ) );
+  CheckEquals( WeekOf( Now ), fMathParser.Evaluate( 'weekOF( now )' ), Format( TXT_SHOULD_BE_INTEGER, [WeekOf( Now )] ) );
 end;
 
 procedure TestTMathParser.TestNegativeSquareRoot;
 begin
-  fMathParser.ParseString := 'SQRT(-1)';
   try
-    CheckTrue( SameValue( 2.5, fMathParser.Parse, EPSILON ) );
+    fMathParser.Evaluate( 'SQRT(-1)' );
+    CheckFalse( true ); { Should not be reached }
   except
     on E: Exception do
       CheckEquals( E.ClassName, EInvalidOp.ClassName );

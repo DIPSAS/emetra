@@ -15,13 +15,13 @@ type
 
   TFunctionMethodCall = function( const Value: extended ): extended of object;
 
-  TStdFunctions = class( TObject )
+  TStandardFunctions = class( TObject )
   strict private
     fFunctionMethods: TObjectDictionary<string, TFunctionMethodCall>;
   private
     procedure ClearFunctions;
   protected
-    function Evaluate( const AFuncName: string; const AValue: extended ): extended;
+    function EvaluateFunction( const AFuncName: string; const AValue: extended ): extended;
     function FunctionExists( const AFuncName: string ): boolean;
     { Math }
     function Sqrt( const AValue: extended ): extended;
@@ -58,7 +58,7 @@ uses
 
 { TStdFunctions }
 
-constructor TStdFunctions.Create;
+constructor TStandardFunctions.Create;
 begin
   inherited;
   fFunctionMethods := TObjectDictionary<string, TFunctionMethodCall>.Create;
@@ -91,19 +91,19 @@ begin
   RegisterFunction( 'SQRT', Sqrt );
 end;
 
-destructor TStdFunctions.Destroy;
+destructor TStandardFunctions.Destroy;
 begin
   ClearFunctions;
   fFunctionMethods.Free;
   inherited;
 end;
 
-procedure TStdFunctions.ClearFunctions;
+procedure TStandardFunctions.ClearFunctions;
 begin
   fFunctionMethods.Clear;
 end;
 
-function TStdFunctions.Evaluate( const AFuncName: string; const AValue: extended ): extended;
+function TStandardFunctions.EvaluateFunction( const AFuncName: string; const AValue: extended ): extended;
 var
   functionToCall: TFunctionMethodCall;
 begin
@@ -113,17 +113,17 @@ begin
     raise Exception.CreateFmt( 'Unknown function: %s', [AFuncName] );
 end;
 
-function TStdFunctions.FunctionExists( const AFuncName: string ): boolean;
+function TStandardFunctions.FunctionExists( const AFuncName: string ): boolean;
 begin
   Result := fFunctionMethods.ContainsKey( AnsiUppercase( AFuncName ) );
 end;
 
-procedure TStdFunctions.RegisterFunction( const AFunctionName: string; AOnCall: TFunctionMethodCall );
+procedure TStandardFunctions.RegisterFunction( const AFunctionName: string; AOnCall: TFunctionMethodCall );
 begin
   fFunctionMethods.Add( AnsiUppercase( AFunctionName ), AOnCall );
 end;
 
-function TStdFunctions.Signum( const AValue: extended ): extended;
+function TStandardFunctions.Signum( const AValue: extended ): extended;
 begin
   if AValue < 0 then
     Result := -1
@@ -135,27 +135,27 @@ end;
 
 {$REGION 'Trigonometric functions'}
 
-function TStdFunctions.Cos( const AValue: extended ): extended;
+function TStandardFunctions.Cos( const AValue: extended ): extended;
 begin
   Result := System.Cos( AValue );
 end;
 
-function TStdFunctions.Sin( const AValue: extended ): extended;
+function TStandardFunctions.Sin( const AValue: extended ): extended;
 begin
   Result := System.Sin( AValue );
 end;
 
-function TStdFunctions.Sqrt( const AValue: extended ): extended;
+function TStandardFunctions.Sqrt( const AValue: extended ): extended;
 begin
   Result := System.Sqrt( AValue );
 end;
 
-function TStdFunctions.Tan( const AValue: extended ): extended;
+function TStandardFunctions.Tan( const AValue: extended ): extended;
 begin
   Result := System.Tangent( AValue );
 end;
 
-function TStdFunctions.Atan( const AValue: extended ): extended;
+function TStandardFunctions.Atan( const AValue: extended ): extended;
 begin
   Result := System.ArcTan( AValue );
 end;
@@ -163,7 +163,7 @@ end;
 {$ENDREGION}
 {$REGION 'Logical functions'}
 
-function TStdFunctions.IsNeg( const AValue: extended ): extended;
+function TStandardFunctions.IsNeg( const AValue: extended ): extended;
 begin
   if AValue < 0 then
     Result := 1
@@ -171,17 +171,17 @@ begin
     Result := 0;
 end;
 
-function TStdFunctions.IsNotNeg( const AValue: extended ): extended;
+function TStandardFunctions.IsNotNeg( const AValue: extended ): extended;
 begin
   Result := 1 - IsNeg( AValue );
 end;
 
-function TStdFunctions.IsNotPos( const AValue: extended ): extended;
+function TStandardFunctions.IsNotPos( const AValue: extended ): extended;
 begin
   Result := 1 - IsPos( AValue );
 end;
 
-function TStdFunctions.IsPos( const AValue: extended ): extended;
+function TStandardFunctions.IsPos( const AValue: extended ): extended;
 begin
   if AValue > 0 then
     Result := 1
@@ -189,7 +189,7 @@ begin
     Result := 0;
 end;
 
-function TStdFunctions.IsZero( const AValue: extended ): extended;
+function TStandardFunctions.IsZero( const AValue: extended ): extended;
 begin
   if AValue = 0 then
     Result := 1
@@ -200,22 +200,22 @@ end;
 {$ENDREGION}
 {$REGION 'Date functions'}
 
-function TStdFunctions.DayOf( const AValue: extended ): extended;
+function TStandardFunctions.DayOf( const AValue: extended ): extended;
 begin
   Result := System.DateUtils.DayOf( AValue );
 end;
 
-function TStdFunctions.MonthOf( const AValue: extended ): extended;
+function TStandardFunctions.MonthOf( const AValue: extended ): extended;
 begin
   Result := System.DateUtils.MonthOf( AValue );
 end;
 
-function TStdFunctions.WeekOf( const AValue: extended ): extended;
+function TStandardFunctions.WeekOf( const AValue: extended ): extended;
 begin
   Result := System.DateUtils.WeekOf( AValue );
 end;
 
-function TStdFunctions.YearOf( const AValue: extended ): extended;
+function TStandardFunctions.YearOf( const AValue: extended ): extended;
 begin
   Result := System.DateUtils.YearOf( AValue );
 end;

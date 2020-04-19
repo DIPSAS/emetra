@@ -52,21 +52,21 @@ type
   TTokenError = ( errNone = 0, errParserStack = 1, errBadRange = 2, errExpression = 3, errOperator = 4, errOpenParen = 5, errCloseParen = 6, errInvalidNum = 7 );
 
 const
-  ParserStackSize = 24;
-  MaxFuncNameLen  = 16;
-  EXP_LIMIT        = 11356;
-  MAX_EXP_LENGTH  = 4;
-  EULERS_NUMBER   = 2.7182818284590452353602874;
+  PARSER_STACK_SIZE        = 32;
+  MAX_FUNCTION_NAME_LENGTH = 24;
+  EXP_LIMIT                = 11356;
+  MAX_EXP_LENGTH           = 4;
+  EULERS_NUMBER            = 2.7182818284590452353602874;
 
 type
 
-  TTokenType = ( Plus, Minus, Times, Divide, Expo, OParen, CParen, Num, Func, EOL, Bad, ERR, Modu );
+  TTokenType = ( ttAdd, ttSubtract, ttMultiply, ttDivide, ttExponentiate, ttParenthesisOpen, ttParenthesisClose, ttNumericValue, ttFunction, ttEndOfLine, ttBadToken, ttError, ttModulus );
 
   TTokenRecord = record
     State: Byte;
     case Byte of
       0: ( Value: Extended );
-      2: ( FuncName: string[MaxFuncNameLen] );
+      2: ( FuncName: string[MAX_FUNCTION_NAME_LENGTH] );
   end; { TokenRec }
 
   TGetVarEvent = procedure( Sender: TObject; VarName: string; var Value: Extended; var Found: Boolean ) of object;
@@ -77,7 +77,7 @@ type
 
   TParseErrorEvent = procedure( Sender: TMathParser; const TokenError: TTokenError ) of object;
 
-  TMathParser = class( TStdFunctions )
+  TMathParser = class( TStandardFunctions )
   strict private
     { Private declarations }
     fInput: string;
@@ -89,34 +89,35 @@ type
     fTokenError: TTokenError;
     fCurrToken: TTokenRecord;
     fMathError: Boolean;
-    fStack: array [1 .. ParserStackSize] of TTokenRecord;
-    fStackTop: 0 .. ParserStackSize;
+    fStack: array [1 .. PARSER_STACK_SIZE] of TTokenRecord;
+    fStackTop: 0 .. PARSER_STACK_SIZE;
     fTokenLen: Word;
     fTokenType: TTokenType;
     fPosition: Word;
-  protected
+  private
     { Protected declarations }
     function GotoState( AProduction: Word ): Word;
     function IsCustomFunction: Boolean;
     function NextTokenIs( const AFunctionNameToLookFor: string ): Boolean;
     function NextTokenIsVariable( var AValue: Extended ): Boolean;
     function NextToken: TTokenType;
-    procedure Push( const AToken: TTokenRecord );
     procedure Pop( var AToken: TTokenRecord );
+    procedure Push( const AToken: TTokenRecord );
     procedure Reduce( Reduction: Word );
     procedure Shift( State: Word );
-    procedure SetInput( const AValue: string );
+    procedure ValidateInput( const AValue: string );
   public
-    { Other methods }
-    function Parse: Extended;
+    { Evaluation methods }
+    function Evaluate: Extended; overload;
+    function Evaluate( const AExpression: string ): Extended; overload;
     { Properties }
-    property OnGetVar: TGetVarEvent read fOnGetVar write fOnGetVar;
-    property OnParseError: TParseErrorEvent read fOnParseError write fOnParseError;
-    property ParseString: string read fInput write SetInput;
+    property LogText: string read fLogText;
     property ParseError: Boolean read fParseError;
     property ParseValue: Extended read fParseValue;
     property TokenError: TTokenError read fTokenError;
-    property LogText: string read fLogText;
+    { Event hooks }
+    property OnGetVar: TGetVarEvent read fOnGetVar write fOnGetVar;
+    property OnParseError: TParseErrorEvent read fOnParseError write fOnParseError;
   end;
 
 implementation
@@ -268,20 +269,20 @@ var
   Ch { , FirstChar } : Char;
   Decimal: Boolean;
 begin
-  NextToken := ERR;
+  NextToken := ttError;
   while ( fPosition <= Length( fInput ) ) and ( fInput[fPosition] in [' '] ) do
     Inc( fPosition );
   fTokenLen := fPosition;
   if fPosition > Length( fInput ) then
   begin
-    NextToken := EOL;
+    NextToken := ttEndOfLine;
     fTokenLen := 0;
     Exit;
   end; { if }
   Ch := UpCase( fInput[fPosition] );
   if CharInSet( Ch, ['!'] ) then
   begin
-    NextToken := ERR;
+    NextToken := ttError;
     fTokenLen := 0;
     Exit;
   end; { if }
@@ -299,7 +300,7 @@ begin
     end; { while }
     if ( TLen = 2 ) and ( Ch = '.' ) then
     begin
-      NextToken := Bad;
+      NextToken := ttBadToken;
       fTokenLen := 0;
       Exit;
     end; { if }
@@ -331,7 +332,7 @@ begin
     end { if }
     else
     begin
-      NextToken := Num;
+      NextToken := ttNumericValue;
       Inc( fPosition, System.Length( NumString ) );
       fTokenLen := fPosition - fTokenLen;
     end; { else }
@@ -341,25 +342,25 @@ begin
   begin
     if NextTokenIs( 'ABS' ) or NextTokenIs( 'EXP' ) or NextTokenIs( 'LN' ) or NextTokenIs( 'ROUND' ) or NextTokenIs( 'TRUNC' ) or IsCustomFunction then
     begin
-      NextToken := Func;
+      NextToken := ttFunction;
       fTokenLen := fPosition - fTokenLen;
       Exit;
     end; { if }
     if NextTokenIs( 'MOD' ) then
     begin
-      NextToken := Modu;
+      NextToken := ttModulus;
       fTokenLen := fPosition - fTokenLen;
       Exit;
     end; { if }
     if NextTokenIsVariable( fCurrToken.Value ) then
     begin
-      NextToken := Num;
+      NextToken := ttNumericValue;
       fTokenLen := fPosition - fTokenLen;
       Exit;
     end { if }
     else
     begin
-      NextToken := Bad;
+      NextToken := ttBadToken;
       fTokenLen := 0;
       Exit;
     end; { else }
@@ -367,16 +368,16 @@ begin
   else
   begin
     case Ch of
-      '+': NextToken := Plus;
-      '-': NextToken := Minus;
-      '*': NextToken := Times;
-      '/': NextToken := Divide;
-      '^': NextToken := Expo;
-      '(': NextToken := OParen;
-      ')': NextToken := CParen;
+      '+': NextToken := ttAdd;
+      '-': NextToken := ttSubtract;
+      '*': NextToken := ttMultiply;
+      '/': NextToken := ttDivide;
+      '^': NextToken := ttExponentiate;
+      '(': NextToken := ttParenthesisOpen;
+      ')': NextToken := ttParenthesisClose;
     else
       begin
-        NextToken := Bad;
+        NextToken := ttBadToken;
         fTokenLen := 0;
         Exit;
       end; { case else }
@@ -397,7 +398,7 @@ end; { Pop }
 procedure TMathParser.Push( const AToken: TTokenRecord );
 { Pushes a new Token onto the stack }
 begin
-  if fStackTop = ParserStackSize then
+  if fStackTop = PARSER_STACK_SIZE then
     fTokenError := errParserStack
   else
   begin
@@ -406,13 +407,18 @@ begin
   end; { else }
 end; { Push }
 
-function TMathParser.Parse: Extended;
+function TMathParser.Evaluate( const AExpression: string ): Extended;
+begin
+  ValidateInput( AExpression );
+  Result := Evaluate;
+end;
+
+function TMathParser.Evaluate: Extended;
 { Parses an input stream }
 var
   FirstToken: TTokenRecord;
   Accepted: Boolean;
 begin
-  inherited;
   fPosition := 1;
   fStackTop := 0;
   fTokenError := errNone;
@@ -427,15 +433,15 @@ begin
     case fStack[fStackTop].State of
       0, 9, 12 .. 16, 20, 40:
         begin
-          if fTokenType = Num then
+          if fTokenType = ttNumericValue then
             Shift( 10 )
-          else if fTokenType = Func then
+          else if fTokenType = ttFunction then
             Shift( 11 )
-          else if fTokenType = Minus then
+          else if fTokenType = ttSubtract then
             Shift( 5 )
-          else if fTokenType = OParen then
+          else if fTokenType = ttParenthesisOpen then
             Shift( 9 )
-          else if fTokenType = ERR then
+          else if fTokenType = ttError then
           begin
             fMathError := True;
             Accepted := True;
@@ -448,11 +454,11 @@ begin
         end; { case of }
       1:
         begin
-          if fTokenType = EOL then
+          if fTokenType = ttEndOfLine then
             Accepted := True
-          else if fTokenType = Plus then
+          else if fTokenType = ttAdd then
             Shift( 12 )
-          else if fTokenType = Minus then
+          else if fTokenType = ttSubtract then
             Shift( 13 )
           else
           begin
@@ -462,34 +468,34 @@ begin
         end; { case of }
       2:
         begin
-          if fTokenType = Times then
+          if fTokenType = ttMultiply then
             Shift( 14 )
-          else if fTokenType = Divide then
+          else if fTokenType = ttDivide then
             Shift( 15 )
           else
             Reduce( 3 );
         end; { case of }
       3:
         begin
-          if fTokenType = Modu then
+          if fTokenType = ttModulus then
             Shift( 40 )
           else
             Reduce( 6 );
         end; { case of }
       4:
         begin
-          if fTokenType = Expo then
+          if fTokenType = ttExponentiate then
             Shift( 16 )
           else
             Reduce( 8 );
         end; { case of }
       5:
         begin
-          if fTokenType = Num then
+          if fTokenType = ttNumericValue then
             Shift( 10 )
-          else if fTokenType = Func then
+          else if fTokenType = ttFunction then
             Shift( 11 )
-          else if fTokenType = OParen then
+          else if fTokenType = ttParenthesisOpen then
             Shift( 9 )
           else
           begin
@@ -503,7 +509,7 @@ begin
       10: Reduce( 15 );
       11:
         begin
-          if fTokenType = OParen then
+          if fTokenType = ttParenthesisOpen then
             Shift( 20 )
           else
           begin
@@ -515,11 +521,11 @@ begin
       18: raise Exception.Create( 'Bad token state' );
       19:
         begin
-          if fTokenType = Plus then
+          if fTokenType = ttAdd then
             Shift( 12 )
-          else if fTokenType = Minus then
+          else if fTokenType = ttSubtract then
             Shift( 13 )
-          else if fTokenType = CParen then
+          else if fTokenType = ttParenthesisClose then
             Shift( 27 )
           else
           begin
@@ -529,18 +535,18 @@ begin
         end; { case of }
       21:
         begin
-          if fTokenType = Times then
+          if fTokenType = ttMultiply then
             Shift( 14 )
-          else if fTokenType = Divide then
+          else if fTokenType = ttDivide then
             Shift( 15 )
           else
             Reduce( 1 );
         end; { case of }
       22:
         begin
-          if fTokenType = Times then
+          if fTokenType = ttMultiply then
             Shift( 14 )
-          else if fTokenType = Divide then
+          else if fTokenType = ttDivide then
             Shift( 15 )
           else
             Reduce( 2 );
@@ -552,11 +558,11 @@ begin
       27: Reduce( 14 );
       28:
         begin
-          if fTokenType = Plus then
+          if fTokenType = ttAdd then
             Shift( 12 )
-          else if fTokenType = Minus then
+          else if fTokenType = ttSubtract then
             Shift( 13 )
-          else if fTokenType = CParen then
+          else if fTokenType = ttParenthesisClose then
             Shift( 29 )
           else
           begin
@@ -696,7 +702,7 @@ begin
             fCurrToken.Value := Trunc( fCurrToken.Value );
         end
         else
-          fCurrToken.Value := Evaluate( Token1.FuncName, fCurrToken.Value )
+          fCurrToken.Value := EvaluateFunction( Token1.FuncName, fCurrToken.Value )
       end;
     3, 6, 8, 10, 12, 15: Pop( fCurrToken );
   end; { case }
@@ -712,7 +718,7 @@ begin
   fTokenType := NextToken;
 end; { Shift }
 
-procedure TMathParser.SetInput( const AValue: string );
+procedure TMathParser.ValidateInput( const AValue: string );
 var
   n: Integer;
   errMsg: string;
