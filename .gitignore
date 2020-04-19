@@ -1,11 +1,11 @@
 __history/
+Win32
 *.dcu
 *.identcache
 *.local
-Win32
 *.vrc
 *.res
+*.rc
 *.exe
 _Status.txt
-*.rc
-PAL/
+PascalAnalyzer/TestClassCommandMediator/
