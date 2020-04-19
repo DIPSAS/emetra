@@ -1,7 +1,7 @@
 # emetra
 Low-level Delphi libraries and components from **FastTrak** application.  As of April 18th 2020, this contains a few selected interfaces and classes as a starting point. 
 
-We will move more code into this repository over time, based on an evolving set of criteria:
+After an initial "loading phase", we will move more code into this repository over time, based on an evolving set of criteria:
 
 ## The code ...
 
