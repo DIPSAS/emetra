@@ -7,5 +7,6 @@ Win32
 *.res
 *.rc
 *.exe
+*.stat
 _Status.txt
 PascalAnalyzer/TestClassCommandMediator/
