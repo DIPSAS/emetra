@@ -32,14 +32,14 @@ from [DevJet Software](http://www.devjetsoftware.com/ "DevJet software").
 
 This is an evolving list.  The code should as a rule:
 
-* Not produce any hints or warnings from the most recent Delpphi compiler, currently Delphi 10.3. Rio.
+* Not produce any hints or warnings from the most recent Delphi compiler, currently Delphi 10.3. Rio.
 * Keep the "uses" clause to a minumum, not include units that are not actually in use.
 * Be cross-platform whenever that will be a minor investment.
 
 # Coding style
 
-All code should have a uniform style, and the coding style should be the best style we can come up with.
-This is an outline of what we currently believe is the best style.  It 
+The coding style follows traditional Object Pascal style, with improvements as defined in the Spring4D style guide.
+We also add some more guidelines that go into a bit more detail, to further improve readability.
 
 ## Naming things
 
