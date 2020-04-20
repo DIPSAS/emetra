@@ -78,8 +78,8 @@ begin
   Add( 262, 'Tillatelse avslått i database i databasen.' );
   Add( 300, 'Tillatelse ble avslått for objektet i databasen' );
   Add( 1971, 'Kan ikke deaktivere indeks på tabellen. Ingen tilgang til å deaktivere sekundærnøkkel på tabellen som bruker denne indeksen.' );
-  Add( 1972 'Kan ikke deaktivere gruppert indeks på tabellen. Ingen tilgang til å endre den refererende visningen samtidig som den grupperte indeksen deaktiveres.' );
-  Add( 1972 'Kan ikke deaktivere den grupperte indeksen på tabellen. Ingen tilgang til å deaktivere sekundærnøkkel på tabellen som refererer til denne tabellen.' );
+  Add( 1972, 'Kan ikke deaktivere gruppert indeks på tabellen. Ingen tilgang til å endre den refererende visningen samtidig som den grupperte indeksen deaktiveres.' );
+  Add( 1991, 'Kan ikke deaktivere den grupperte indeksen på tabellen. Ingen tilgang til å deaktivere sekundærnøkkel på tabellen som refererer til denne tabellen.' );
 end;
 
 end.
