@@ -270,20 +270,20 @@ var
   Ch { , FirstChar } : Char;
   Decimal: Boolean;
 begin
-  NextToken := ttError;
+  Result := ttError;
   while ( fPosition <= Length( fInput ) ) and ( fInput[fPosition] in [' '] ) do
     Inc( fPosition );
   fTokenLen := fPosition;
   if fPosition > Length( fInput ) then
   begin
-    NextToken := ttEndOfLine;
+    Result := ttEndOfLine;
     fTokenLen := 0;
     Exit;
   end; { if }
   Ch := UpCase( fInput[fPosition] );
   if CharInSet( Ch, ['!'] ) then
   begin
-    NextToken := ttError;
+    Result := ttError;
     fTokenLen := 0;
     Exit;
   end; { if }
@@ -301,7 +301,7 @@ begin
     end; { while }
     if ( TLen = 2 ) and ( Ch = '.' ) then
     begin
-      NextToken := ttBadToken;
+      Result := ttBadToken;
       fTokenLen := 0;
       Exit;
     end; { if }
@@ -333,7 +333,7 @@ begin
     end { if }
     else
     begin
-      NextToken := ttNumericValue;
+      Result := ttNumericValue;
       Inc( fPosition, System.Length( NumString ) );
       fTokenLen := fPosition - fTokenLen;
     end; { else }
@@ -343,25 +343,25 @@ begin
   begin
     if NextTokenIs( 'ABS' ) or NextTokenIs( 'EXP' ) or NextTokenIs( 'LN' ) or NextTokenIs( 'ROUND' ) or NextTokenIs( 'TRUNC' ) or IsCustomFunction then
     begin
-      NextToken := ttFunction;
+      Result := ttFunction;
       fTokenLen := fPosition - fTokenLen;
       Exit;
     end; { if }
     if NextTokenIs( 'MOD' ) then
     begin
-      NextToken := ttModulus;
+      Result := ttModulus;
       fTokenLen := fPosition - fTokenLen;
       Exit;
     end; { if }
     if NextTokenIsVariable( fCurrToken.Value ) then
     begin
-      NextToken := ttNumericValue;
+      Result := ttNumericValue;
       fTokenLen := fPosition - fTokenLen;
       Exit;
     end { if }
     else
     begin
-      NextToken := ttBadToken;
+      Result := ttBadToken;
       fTokenLen := 0;
       Exit;
     end; { else }
@@ -369,16 +369,16 @@ begin
   else
   begin
     case Ch of
-      '+': NextToken := ttAdd;
-      '-': NextToken := ttSubtract;
-      '*': NextToken := ttMultiply;
-      '/': NextToken := ttDivide;
-      '^': NextToken := ttExponentiate;
-      '(': NextToken := ttParenthesisOpen;
-      ')': NextToken := ttParenthesisClose;
+      '+': Result := ttAdd;
+      '-': Result := ttSubtract;
+      '*': Result := ttMultiply;
+      '/': Result := ttDivide;
+      '^': Result := ttExponentiate;
+      '(': Result := ttParenthesisOpen;
+      ')': Result := ttParenthesisClose;
     else
       begin
-        NextToken := ttBadToken;
+        Result := ttBadToken;
         fTokenLen := 0;
         Exit;
       end; { case else }
