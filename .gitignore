@@ -10,3 +10,4 @@ Win32
 *.stat
 _Status.txt
 PascalAnalyzer/TestClassCommandMediator/
+dunit.ini
