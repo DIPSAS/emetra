@@ -15,7 +15,7 @@
 {$ENDIF}
 
 uses
-  Emetra.Logging.PlainText in '..\Emetra.Logging.PlainText.pas', // Logging goes first, to create GlobalLog early.
+  Emetra.Logging.PlainText in '..\Emetra.Logging.PlainText.pas',
   DUnitTestRunner,
   TestCasePlainTextLog in 'TestCasePlainTextLog.pas',
   Emetra.Logging.Base in '..\Emetra.Logging.Base.pas',
@@ -26,7 +26,9 @@ uses
   Emetra.Logging.Target.GrayLog in '..\Emetra.Logging.Target.GrayLog.pas',
   Emetra.Logging.Target.Mock in '..\Emetra.Logging.Target.Mock.pas',
   Emetra.Logging.Target.SmartInspect in '..\Emetra.Logging.Target.SmartInspect.pas',
-  Emetra.Logging.Target.GrayLog.Interfaces in '..\Emetra.Logging.Target.GrayLog.Interfaces.pas';
+  Emetra.Logging.Target.GrayLog.Interfaces in '..\Emetra.Logging.Target.GrayLog.Interfaces.pas',
+  Emetra.Hash.CRC32 in '..\..\Utils\Emetra.Hash.CRC32.pas',
+  Emetra.Win.User in '..\..\Utils\Emetra.Win.User.pas';
 
 {$R *.RES}
 

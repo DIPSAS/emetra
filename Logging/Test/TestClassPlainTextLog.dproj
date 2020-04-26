@@ -91,6 +91,8 @@
         <DCCReference Include="..\Emetra.Logging.Target.Mock.pas"/>
         <DCCReference Include="..\Emetra.Logging.Target.SmartInspect.pas"/>
         <DCCReference Include="..\Emetra.Logging.Target.GrayLog.Interfaces.pas"/>
+        <DCCReference Include="..\..\Utils\Emetra.Hash.CRC32.pas"/>
+        <DCCReference Include="..\..\Utils\Emetra.Win.User.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
