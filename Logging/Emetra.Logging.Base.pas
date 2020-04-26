@@ -41,7 +41,7 @@ type
     procedure PrepareButtonsYesNo( const ACancel: boolean );
     procedure SetDefaultResult;
     { other members }
-    function ShowCrossPlatformDialog( const ALogMessage: string; const AButtons: TMsgDlgButtons; const ADefaultBtn: TMsgDlgBtn; const AHelpCtx: Longint; const ALogLevel: TLogLevel ): Integer;
+    procedure ShowCrossPlatformDialog( const ALogMessage: string; const AButtons: TMsgDlgButtons; const ADefaultBtn: TMsgDlgBtn; const AHelpCtx: Longint; const ALogLevel: TLogLevel );
     { Properties }
     property ButtonSet: TMsgDlgButtons read fButtonSet;
     property DefaultButton: TMsgDlgBtn read fDefaultButton;
@@ -266,7 +266,7 @@ begin
   end;
 end;
 
-function TLogAdapter.ShowCrossPlatformDialog( const ALogMessage: string; const AButtons: TMsgDlgButtons; const ADefaultBtn: TMsgDlgBtn; const AHelpCtx: Longint; const ALogLevel: TLogLevel ): Integer;
+procedure TLogAdapter.ShowCrossPlatformDialog( const ALogMessage: string; const AButtons: TMsgDlgButtons; const ADefaultBtn: TMsgDlgBtn; const AHelpCtx: Longint; const ALogLevel: TLogLevel );
 var
   msgDlgType: TMsgDlgType;
 begin
@@ -288,7 +288,6 @@ begin
   end
   else
     fModalResult := MapButtonToResult( fDefaultButton );
-  Result := fModalResult;
 end;
 
 function TLogAdapter.HashMessage( const s: string ): cardinal;

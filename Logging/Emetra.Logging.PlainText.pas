@@ -386,7 +386,6 @@ end;
 
 procedure TPlainTextLog.Event( AMessage: string; const ALogType: TLogLevel );
 var
-  responseCode: Integer;
   dialogText: string;
 begin
   fCriticalSection.Enter;
@@ -404,15 +403,14 @@ begin
         dialogText := PrepareForDialog( AMessage );
         if TMsgDlgBtn.mbNo in ButtonSet then
         begin
-          responseCode := ShowCrossPlatformDialog( dialogText, ButtonSet, TMsgDlgBtn.mbYes, 0, ALogType );
+          ShowCrossPlatformDialog( dialogText, ButtonSet, TMsgDlgBtn.mbYes, 0, ALogType );
           if ModalResult = mrCancel then
             raise EAbort.Create( 'CanceledByUser' );
         end
         else if TMsgDlgBtn.mbIgnore in ButtonSet then
-          responseCode := ShowCrossPlatformDialog( dialogText, [TMsgDlgBtn.mbOk, TMsgDlgBtn.mbIgnore], TMsgDlgBtn.mbOk, 0, ALogType )
+          ShowCrossPlatformDialog( dialogText, [TMsgDlgBtn.mbOk, TMsgDlgBtn.mbIgnore], TMsgDlgBtn.mbOk, 0, ALogType )
         else
-          responseCode := ShowCrossPlatformDialog( dialogText, [TMsgDlgBtn.mbOk], TMsgDlgBtn.mbOk, 0, ALogType );
-        Event( LOG_STUB + 'ResponseCode: %d', [ClassName, 'Event', responseCode] );
+          ShowCrossPlatformDialog( dialogText, [TMsgDlgBtn.mbOk], TMsgDlgBtn.mbOk, 0, ALogType );
       end;
     end;
   finally
