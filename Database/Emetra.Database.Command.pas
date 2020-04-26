@@ -77,13 +77,7 @@ var
   paramObject: TParam;
 begin
   paramObject := fParamsFromSql[AIndex];
-  case VarType( AValue ) of
-    varString: paramObject.DataType := ftString;
-    varDate: paramObject.DataType := ftDateTime;
-    varInteger, varSmallInt: paramObject.DataType := ftInteger;
-    varDouble, varSingle: paramObject.DataType := ftFloat;
-  else raise EUnsupportedParameterType.CreateFmt( 'Unsupported parameter type: %d', [VarType( AValue )] );
-  end;
+  paramObject.DataType := VarTypeToDataType( VarType( AValue ) );
   paramObject.Value := AValue;
 end;
 
