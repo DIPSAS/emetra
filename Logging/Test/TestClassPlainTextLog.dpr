@@ -15,9 +15,9 @@
 {$ENDIF}
 
 uses
-  Emetra.Logging.PlainText in '..\Emetra.Logging.PlainText.pas',
-  DUnitTestRunner,
+  Emetra.Logging.PlainText in '..\Emetra.Logging.PlainText.pas', {Keep logging first}
   TestCasePlainTextLog in 'TestCasePlainTextLog.pas',
+  DUnitTestRunner,
   Emetra.Logging.Base in '..\Emetra.Logging.Base.pas',
   Emetra.Logging.PlainText.LogItem in '..\Emetra.Logging.PlainText.LogItem.pas',
   Emetra.Logging.PlainText.ItemList in '..\Emetra.Logging.PlainText.ItemList.pas',
