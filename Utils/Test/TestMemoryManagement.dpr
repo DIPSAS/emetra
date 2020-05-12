@@ -14,11 +14,19 @@
 {$APPTYPE CONSOLE}
 {$ENDIF}
 
+{ Logging should be the first entry }
+
 uses
-  Emetra.Logging.SmartInspect,
+  Emetra.Logging.SmartInspect in '..\..\Logging\Emetra.Logging.SmartInspect.pas',
   DUnitTestRunner,
+  TestCaseMemoryManagement in 'TestCaseMemoryManagement.pas',
   TestClassesMemoryManagement in 'TestClassesMemoryManagement.pas',
-  TestCaseMemoryManagement in 'TestCaseMemoryManagement.pas';
+  Emetra.Logging.Interfaces in '..\..\Logging\Emetra.Logging.Interfaces.pas',
+  Emetra.Logging.LogItem.Interfaces in '..\..\Logging\Emetra.Logging.LogItem.Interfaces.pas',
+  Emetra.Logging.Base in '..\..\Logging\Emetra.Logging.Base.pas',
+  Emetra.Logging.Utilities in '..\..\Logging\Emetra.Logging.Utilities.pas',
+  Emetra.Logging.Colors in '..\..\Logging\Emetra.Logging.Colors.pas',
+  Emetra.Logging.FileNames in '..\..\Logging\Emetra.Logging.FileNames.pas';
 
 {$R *.RES}
 
