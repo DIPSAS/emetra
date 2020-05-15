@@ -1,0 +1,72 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{3B25AB8F-94C1-42BF-9CF2-CF310B5BB15B}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="TestClassConsoleLogger.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="TestClassGraylogDispatcher.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="TestClassPlainTextFireMonkey.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="TestClassPlainTextLog.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="TestClassConsoleLogger">
+        <MSBuild Projects="TestClassConsoleLogger.dproj"/>
+    </Target>
+    <Target Name="TestClassConsoleLogger:Clean">
+        <MSBuild Projects="TestClassConsoleLogger.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TestClassConsoleLogger:Make">
+        <MSBuild Projects="TestClassConsoleLogger.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="TestClassGraylogDispatcher">
+        <MSBuild Projects="TestClassGraylogDispatcher.dproj"/>
+    </Target>
+    <Target Name="TestClassGraylogDispatcher:Clean">
+        <MSBuild Projects="TestClassGraylogDispatcher.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TestClassGraylogDispatcher:Make">
+        <MSBuild Projects="TestClassGraylogDispatcher.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="TestClassPlainTextFireMonkey">
+        <MSBuild Projects="TestClassPlainTextFireMonkey.dproj"/>
+    </Target>
+    <Target Name="TestClassPlainTextFireMonkey:Clean">
+        <MSBuild Projects="TestClassPlainTextFireMonkey.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TestClassPlainTextFireMonkey:Make">
+        <MSBuild Projects="TestClassPlainTextFireMonkey.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="TestClassPlainTextLog">
+        <MSBuild Projects="TestClassPlainTextLog.dproj"/>
+    </Target>
+    <Target Name="TestClassPlainTextLog:Clean">
+        <MSBuild Projects="TestClassPlainTextLog.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TestClassPlainTextLog:Make">
+        <MSBuild Projects="TestClassPlainTextLog.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="TestClassConsoleLogger;TestClassGraylogDispatcher;TestClassPlainTextFireMonkey;TestClassPlainTextLog"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="TestClassConsoleLogger:Clean;TestClassGraylogDispatcher:Clean;TestClassPlainTextFireMonkey:Clean;TestClassPlainTextLog:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="TestClassConsoleLogger:Make;TestClassGraylogDispatcher:Make;TestClassPlainTextFireMonkey:Make;TestClassPlainTextLog:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

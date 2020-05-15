@@ -19,7 +19,9 @@ uses
   TestCaseGrayLogDispatcher in 'TestCaseGrayLogDispatcher.pas',
   Emetra.Logging.Target.GrayLog in '..\Emetra.Logging.Target.GrayLog.pas',
   Emetra.Logging.PlainText.LogItem in '..\Emetra.Logging.PlainText.LogItem.pas',
-  Emetra.Logging.PlainText in '..\Emetra.Logging.PlainText.pas';
+  Emetra.Logging.PlainText in '..\Emetra.Logging.PlainText.pas',
+  Emetra.Win.User in '..\..\Utils\Emetra.Win.User.pas',
+  Emetra.Hash.CRC32 in '..\..\Utils\Emetra.Hash.CRC32.pas';
 
 {$R *.RES}
 
