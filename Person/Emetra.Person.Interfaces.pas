@@ -61,6 +61,11 @@ type
     property VisualId: string read Get_VisualId;
   end;
 
+  IPersonDead = interface['{3F9B2C5F-981B-4BA7-BEED-985A64774004}']
+    function IsDead: boolean;
+    function DeathDate: TDate;
+  end;
+
   IPersonVisualId = interface
     ['{2C31AE8F-CD32-4490-AEE3-CE2E65932BBB}']
     { Property accessors }
@@ -110,7 +115,7 @@ type
     { Properties }
     property Person[AIndex: Integer]: IPersonReadOnly read Get_Person;
     property Count: Integer read Get_Count;
-    property name: string read Get_Name;
+    property Name: string read Get_Name;
     property Usable: boolean read Get_Usable;
   end;
 
