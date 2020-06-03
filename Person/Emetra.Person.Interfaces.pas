@@ -166,6 +166,17 @@ type
 
 function SexToStr( const ASex: TSex ): string;
 
+const
+  { Regular expressions for searching in a list of persons }
+  RGX_DATE              = '^(\d{6}|\d{2}\.\d{2}\.\d{2,4})';
+  RGX_VALID_DOB         = RGX_DATE + '$';
+  RGX_VALID_NATIONAL_ID = '^\d{11}$';
+  RGX_MOBILE_PHONE      = '^\d{8}$';
+  RGX_NAME              = '(\p{L}+(\-\p{L}+)*)';
+  RGX_TWO_NAMES         = RGX_NAME + '\s+' + RGX_NAME;
+  RGX_DOB_AND_NAME      = RGX_DATE + '\s+' + RGX_NAME + '$';
+  RGX_DOB_AND_TWO_NAMES = RGX_DATE + '\s+' + RGX_TWO_NAMES + '$';
+
 resourcestring
 
   StrMaleGender = 'Mann';
