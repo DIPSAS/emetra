@@ -171,6 +171,7 @@ const
   RGX_DATE              = '^(\d{6}|\d{2}\.\d{2}\.\d{2,4})';
   RGX_VALID_DOB         = RGX_DATE + '$';
   RGX_VALID_NATIONAL_ID = '^\d{11}$';
+  RGX_SPLIT_NATIONAL_ID = '^\d{6}\s?\d{5}$';
   RGX_MOBILE_PHONE      = '^\d{8}$';
   RGX_NAME              = '(\p{L}+(\-\p{L}+)*)';
   RGX_TWO_NAMES         = RGX_NAME + '\s+' + RGX_NAME;
