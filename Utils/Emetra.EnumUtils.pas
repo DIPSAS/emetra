@@ -6,19 +6,97 @@ uses
   System.TypInfo, System.SysUtils, System.Rtti;
 
 type
-  EEnumConversionError = class( Exception );
+  /// <summary>
+  ///   Exception is thrown when a string can not be converted to the requested
+  ///   enumeration type.
+  /// </summary>
+  /// <remarks>
+  ///   <para>
+  ///     More on enumerated types here:
+  ///   </para>
+  ///   <para>
+  ///     <see href="http://docwiki.embarcadero.com/RADStudio/Tokyo/en/Simple_Types_(Delphi)#Enumerated_Types_with_Explicitly_Assigned_Ordinality">
+  ///     Enumerated Types</see>
+  ///   </para>
+  ///   <para>
+  ///     For some reason, Enumerated types with expilcitly assigned
+  ///     ordinalities have no RTTI, and using them with TEnumMapper will
+  ///     also throw this exception. <br /><br />
+  ///   </para>
+  /// </remarks>
+  EEnumMapperError = class( Exception );
 
+  /// <summary>
+  ///   This class improves a little bit on the standard RTTI functions by
+  ///   automatically stripping underscores from enum values (typically when
+  ///   read from JSON data). It can also add a prefix to the string before
+  ///   trying to convert it.
+  /// </summary>
+  /// <example>
+  ///   A string like "first_value" can be automatically converted to
+  ///   enFirstValue representing a member in a Delphi enumeration class that
+  ///   follows standard Delphi naming conventions.
+  /// </example>
   TEnumMapper = class
-    class function GetPrefix<T>( const ASampleValue: T ): string;
-    class function GetValue<T>( const AInput: string; const AEnumPrefix: string = '' ): integer; overload;
-    class function GetValue<T>( const AInput: string; const ASampleValue: T ): integer; overload;
+    /// <summary>
+    ///   Simple wrapper for similar functionality in RTTI.
+    /// </summary>
     class function GetName<T>( const AValue: T ): string;
+    /// <summary>
+    /// Extracts the first sequence of lowercase characters (a..z) that by
+    /// convention is part of an enumeration value in Delphi.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The enumeration type.
+    /// </typeparam>
+    /// <param name="ASampleValue">
+    /// A sample value from the enumeration.
+    /// </param>
+    /// <remarks>
+    /// The assumption is made that all members of an enumeration type share
+    /// the same prefix.
+    /// </remarks>
+    class function GetPrefix<T { : enum } >( const ASampleValue: T ): string;
+    /// <typeparam name="T">
+    /// Any enumeration type
+    /// </typeparam>
+    /// <param name="AInput">
+    /// The string that you want to convert to a member of the enumerated
+    /// type T.
+    /// </param>
+    /// <param name="AEnumPrefix">
+    /// The prefix used across all members of T.
+    /// </param>
+    /// <remarks>
+    /// The asu
+    /// </remarks>
+    class function GetValue<T { : enum } >( const AInput: string; const AEnumPrefix: string = '' ): integer; overload;
+    /// <typeparam name="T">
+    /// The enumeration type.
+    /// </typeparam>
+    /// <param name="AInput">
+    /// The string that you want to convert to a member of the enumerated
+    /// type T.
+    /// </param>
+    /// <param name="ASampleValue">
+    /// Any value from the enumeration T.
+    /// </param>
+    /// <remarks>
+    /// The assumption is made that all members of an enumeration type share
+    /// the prefix if ASampleValue.
+    /// </remarks>
+    class function GetValue<T { : enum } >( const AInput: string; const ASampleValue: T ): integer; overload;
   end;
 
 implementation
 
 const
   UNASSIGNED_ENUM = -1;
+
+class function TEnumMapper.GetName<T>( const AValue: T ): string;
+begin
+  Result := TRttiEnumerationType.GetName( AValue );
+end;
 
 class function TEnumMapper.GetPrefix<T>( const ASampleValue: T ): string;
 var
@@ -36,11 +114,6 @@ begin
   Result := Copy( s, 1, i - 1 );
 end;
 
-class function TEnumMapper.GetName<T>( const AValue: T ): string;
-begin
-  Result := TRttiEnumerationType.GetName( AValue );
-end;
-
 class function TEnumMapper.GetValue<T>( const AInput: string; const AEnumPrefix: string ): integer;
 var
   currentChar: char;
@@ -50,7 +123,7 @@ var
 begin
   enumTypeInfo := TypeInfo( T );
   if not Assigned( enumTypeInfo ) then
-    raise EEnumConversionError.CreateFmt( 'Failed to retrieve TypeInfo (%s)', [AInput] );
+    raise EEnumMapperError.CreateFmt( 'Failed to retrieve TypeInfo for Enum (%s)', [AInput] );
   Result := UNASSIGNED_ENUM;
   { Avoid reallocation of string as it grows, set to max size first }
   SetLength( extractedString, Length( AInput ) );
@@ -62,7 +135,7 @@ begin
   { Try to get value }
   Result := GetEnumValue( enumTypeInfo, AEnumPrefix + extractedString );
   if Result = UNASSIGNED_ENUM then
-    raise EEnumConversionError.CreateFmt( 'String "%s" could not be converted to "%s" enumeration', [AInput, enumTypeInfo.Name] );
+    raise EEnumMapperError.CreateFmt( 'String "%s" could not be converted to "%s" enumeration', [AInput, enumTypeInfo.Name] );
 end;
 
 class function TEnumMapper.GetValue<T>( const AInput: string; const ASampleValue: T ): integer;
