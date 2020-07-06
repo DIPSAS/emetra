@@ -30,7 +30,7 @@ type
   ///   This class improves a little bit on the standard RTTI functions by
   ///   automatically stripping underscores from enum values (typically when
   ///   read from JSON data). It can also add a prefix to the string before
-  ///   trying to convert it.
+  ///   trying to convert it. Otherwise, just use value := TRttiEnumerationType.GetValue<T>(string);
   /// </summary>
   /// <example>
   ///   A string like "first_value" can be automatically converted to
