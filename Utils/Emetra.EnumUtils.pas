@@ -38,6 +38,7 @@ type
   ///   follows standard Delphi naming conventions.
   /// </example>
   TEnumMapper = class
+  public
     /// <summary>
     ///   Simple wrapper for similar functionality in RTTI.
     /// </summary>
@@ -86,6 +87,8 @@ type
     /// the prefix if ASampleValue.
     /// </remarks>
     class function GetValue<T { : enum } >( const AInput: string; const ASampleValue: T ): integer; overload;
+
+    class function GetValueNullable<T { : enum }>( const AInput: string; const AEnumPrefix: string = '' ): integer;
   end;
 
 implementation
@@ -125,13 +128,16 @@ begin
   if not Assigned( enumTypeInfo ) then
     raise EEnumMapperError.CreateFmt( 'Failed to retrieve TypeInfo for Enum (%s)', [AInput] );
   Result := UNASSIGNED_ENUM;
+
   { Avoid reallocation of string as it grows, set to max size first }
   SetLength( extractedString, Length( AInput ) );
   extractedString := EmptyStr;
+
   { Add characters except whitespace and underscores }
   for currentChar in AInput do
     if not CharInSet( currentChar, [#9, #10, #13, #32, '_'] ) then
       extractedString := extractedString + currentChar;
+
   { Try to get value }
   Result := GetEnumValue( enumTypeInfo, AEnumPrefix + extractedString );
   if Result = UNASSIGNED_ENUM then
@@ -142,5 +148,20 @@ class function TEnumMapper.GetValue<T>( const AInput: string; const ASampleValue
 begin
   Result := GetValue<T>( AInput, GetPrefix<T>( ASampleValue ) );
 end;
+
+class function TEnumMapper.GetValueNullable<T>( const AInput: string; const AEnumPrefix: string ): integer;
+begin
+  // check if AInput == null then AInput = 'Null' then run GetValue
+  Result := GetValue<T>( AInput, AEnumPrefix );
+  if Result = -1 then
+  begin
+      if Length( AInput.Trim ) = 0 then
+      begin
+        //value was null
+        Result := GetValue<T>( 'null' , AEnumPrefix );
+      end;
+  end;
+end;
+
 
 end.
