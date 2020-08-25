@@ -152,15 +152,15 @@ end;
 class function TEnumMapper.GetValueNullable<T>( const AInput: string; const AEnumPrefix: string ): integer;
 begin
   // check if AInput == null then AInput = 'Null' then run GetValue
-  Result := GetValue<T>( AInput, AEnumPrefix );
-  if Result = -1 then
+
+  if Length( AInput.Trim ) = 0 then
   begin
-      if Length( AInput.Trim ) = 0 then
-      begin
-        //value was null
-        Result := GetValue<T>( 'null' , AEnumPrefix );
-      end;
+    //value was null
+    Result := GetValue<T>( 'null' , AEnumPrefix );
+    exit;
   end;
+
+  Result := GetValue<T>( AInput, AEnumPrefix );
 end;
 
 

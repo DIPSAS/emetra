@@ -22,6 +22,8 @@ type
   TScopedEnum = ( NullValue = 0, ThirdValue = 3, TenthValue = 10 );
 {$SCOPEDENUMS OFF}
 
+  TEnumWithNullAndCamelCase = ( ewnacNull, ewnacStuff );
+
   [TestFixture]
   TTestEnumMapper = class
   public
@@ -41,6 +43,8 @@ type
     procedure TestScopedEnumWithStrangeNumbering;
     [Test]
     procedure TestFailedMappings;
+    [Test]
+    procedure TestEnumNullable;
   end;
 
 implementation
@@ -128,6 +132,13 @@ begin
     on E: Exception do
       Assert.AreEqual( E.ClassType, EEnumMapperError );
   end;
+end;
+
+procedure TTestEnumMapper.TestEnumNullable;
+begin
+  Assert.AreEqual(ord( TEnumWithNullAndCamelCase.ewnacNull), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>('', 'ewnac' )), 'Expected to get conv to null then enum' );
+  Assert.AreEqual(ord( TEnumWithNullAndCamelCase.ewnacNull), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>('       ', 'ewnac' )), 'Expected to get conv to null then enum' );
+  Assert.AreEqual(ord( TEnumWithNullAndCamelCase.ewnacNull), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>('   null    ', 'ewnac' )), 'Expected to get conv to null then enum' );
 end;
 
 initialization
