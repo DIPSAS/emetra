@@ -16,7 +16,7 @@ type
   http://docwiki.embarcadero.com/RADStudio/Tokyo/en/Simple_Types_(Delphi)#Enumerated_Types_with_Explicitly_Assigned_Ordinality
 
   }
-
+  TEnumWithNullAndCamelCase = ( ewnacNull, ewnacStuff );
   TEnumWithStrangeNumbering = ( ewsnZeroValue = 0, ewsnThirdValue = 3, ewsnTenthValue = 10 );
 {$SCOPEDENUMS ON}
   TScopedEnum = ( NullValue = 0, ThirdValue = 3, TenthValue = 10 );
@@ -41,6 +41,8 @@ type
     procedure TestScopedEnumWithStrangeNumbering;
     [Test]
     procedure TestFailedMappings;
+    [Test]
+    procedure TestEnumNullable;
   end;
 
 implementation
@@ -128,6 +130,13 @@ begin
     on E: Exception do
       Assert.AreEqual( E.ClassType, EEnumMapperError );
   end;
+end;
+
+procedure TTestEnumMapper.TestEnumNullable;
+begin
+  Assert.AreEqual( ord( TEnumWithNullAndCamelCase.ewnacNull ), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>( '', 'ewnac' ) ), 'Expected to get conv to null then enum' );
+  Assert.AreEqual( ord( TEnumWithNullAndCamelCase.ewnacNull ), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>( '       ', 'ewnac' ) ), 'Expected to get conv to null then enum' );
+  Assert.AreEqual( ord( TEnumWithNullAndCamelCase.ewnacNull ), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>( '   null    ', 'ewnac' ) ), 'Expected to get conv to null then enum' );
 end;
 
 initialization
