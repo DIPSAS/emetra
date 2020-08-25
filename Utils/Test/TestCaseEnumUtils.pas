@@ -137,6 +137,17 @@ begin
   Assert.AreEqual( ord( TEnumWithNullAndCamelCase.ewnacNull ), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>( '', 'ewnac' ) ), 'Expected to get conv to null then enum' );
   Assert.AreEqual( ord( TEnumWithNullAndCamelCase.ewnacNull ), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>( '       ', 'ewnac' ) ), 'Expected to get conv to null then enum' );
   Assert.AreEqual( ord( TEnumWithNullAndCamelCase.ewnacNull ), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>( '   null    ', 'ewnac' ) ), 'Expected to get conv to null then enum' );
+  
+  Assert.AreEqual( ord( TEnumWithNullAndCamelCase.ewnacStuff ), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>( 'STUFF', 'ewnac' ) ), 'Expected to get conv to null then enum' );
+  Assert.AreEqual( ord( TEnumWithNullAndCamelCase.ewnacStuff ), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>( 'stuff', 'ewnac' ) ), 'Expected to get conv to null then enum' );
+  Assert.AreEqual( ord( TEnumWithNullAndCamelCase.ewnacStuff ), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>( '   s TufF', 'ewnac' ) ), 'Expected to get conv to null then enum' );
+  
+  try
+    Assert.AreEqual( -1, TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>( 'fafsdfe', 'ewnac' ), 'Skal feile');
+  except
+    on E: Exception do
+      Assert.AreEqual( E.ClassType, EEnumMapperError );
+  end;
 end;
 
 initialization
