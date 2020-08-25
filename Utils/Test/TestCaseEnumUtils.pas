@@ -12,8 +12,8 @@ type
 
   TEnumWithCamelCase = ( ewuFirstValue, ewuSecondValue, ewuThirdValue );
   {
-  For some reason, Enumerated types with explcitly assigned ordinalities have no RTTI:
-  http://docwiki.embarcadero.com/RADStudio/Tokyo/en/Simple_Types_(Delphi)#Enumerated_Types_with_Explicitly_Assigned_Ordinality
+    For some reason, Enumerated types with explcitly assigned ordinalities have no RTTI:
+    http://docwiki.embarcadero.com/RADStudio/Tokyo/en/Simple_Types_(Delphi)#Enumerated_Types_with_Explicitly_Assigned_Ordinality
 
   }
 
@@ -21,7 +21,6 @@ type
 {$SCOPEDENUMS ON}
   TScopedEnum = ( NullValue = 0, ThirdValue = 3, TenthValue = 10 );
 {$SCOPEDENUMS OFF}
-
   TEnumWithNullAndCamelCase = ( ewnacNull, ewnacStuff );
 
   [TestFixture]
@@ -136,9 +135,9 @@ end;
 
 procedure TTestEnumMapper.TestEnumNullable;
 begin
-  Assert.AreEqual(ord( TEnumWithNullAndCamelCase.ewnacNull), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>('', 'ewnac' )), 'Expected to get conv to null then enum' );
-  Assert.AreEqual(ord( TEnumWithNullAndCamelCase.ewnacNull), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>('       ', 'ewnac' )), 'Expected to get conv to null then enum' );
-  Assert.AreEqual(ord( TEnumWithNullAndCamelCase.ewnacNull), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>('   null    ', 'ewnac' )), 'Expected to get conv to null then enum' );
+  Assert.AreEqual( ord( TEnumWithNullAndCamelCase.ewnacNull ), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>( '', 'ewnac' ) ), 'Expected to get conv to null then enum' );
+  Assert.AreEqual( ord( TEnumWithNullAndCamelCase.ewnacNull ), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>( '       ', 'ewnac' ) ), 'Expected to get conv to null then enum' );
+  Assert.AreEqual( ord( TEnumWithNullAndCamelCase.ewnacNull ), ord( TEnumMapper.GetValueNullable<TEnumWithNullAndCamelCase>( '   null    ', 'ewnac' ) ), 'Expected to get conv to null then enum' );
 end;
 
 initialization
