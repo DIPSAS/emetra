@@ -120,6 +120,7 @@ end;
 class function TEnumMapper.GetValue<T>( const AInput: string; const AEnumPrefix: string ): integer;
 var
   currentChar: char;
+  trimmedInput: string;
   extractedString: string;
   s: string;
   enumTypeInfo: PTypeInfo;
@@ -129,13 +130,15 @@ begin
     raise EEnumMapperError.CreateFmt( 'Failed to retrieve TypeInfo for Enum (%s)', [AInput] );
   Result := UNASSIGNED_ENUM;
 
+  trimmedInput := AInput.Trim;
+
   { Avoid reallocation of string as it grows, set to max size first }
-  SetLength( extractedString, Length( AInput ) );
+  SetLength( extractedString, Length( trimmedInput ) );
   extractedString := EmptyStr;
 
   { Add characters except whitespace and underscores }
-  for currentChar in AInput do
-    if not CharInSet( currentChar, [#9, #10, #13, #32, '_'] ) then
+  for currentChar in trimmedInput do
+    if not CharInSet( currentChar, [#9, #10, #13, '_'] ) then
       extractedString := extractedString + currentChar;
 
   { Try to get value }
